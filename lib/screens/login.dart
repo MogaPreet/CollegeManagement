@@ -1,8 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cms/main.dart';
+import 'package:cms/screens/Teacher/home.dart';
 import 'package:cms/screens/homepage.dart';
 import 'package:cms/screens/signup.dart';
+import 'package:cms/screens/teacher_signup.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,23 +31,28 @@ class _LoginScreenState extends State<LoginScreen> {
   String? errorMessage;
   SharedPreferences? logindata;
   bool? newuser;
+  bool? isTeacher;
   @override
   void initState() {
     // TODO: implement initState
-    checkAuth();
+
     // checkforblock();
     super.initState();
   }
 
-  void checkAuth() async {
-    logindata = await SharedPreferences.getInstance();
-    newuser = (logindata!.getBool('login') ?? true);
+  // void checkAuth() async {
+  //   logindata = await SharedPreferences.getInstance();
+  //   newuser = (logindata!.getBool('login') ?? true);
+  //   isTeacher = (logindata!.getBool('isTeacher') ?? false);
 
-    if (newuser == false) {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => MainScreen()));
-    }
-  }
+  //   if (newuser == false && isTeacher == false) {
+  //     Navigator.pushReplacement(
+  //         context, MaterialPageRoute(builder: (context) => const HomePage()));
+  //   } else if (newuser == false && isTeacher == true) {
+  //     Navigator.pushReplacement(
+  //         context, MaterialPageRoute(builder: (context) => HomePage()));
+  //   }
+  // }
 
   // checkforblock() async {
   //   if (emailController.text == null) {
@@ -135,9 +145,9 @@ class _LoginScreenState extends State<LoginScreen> {
           padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
           minWidth: MediaQuery.of(context).size.width,
           onPressed: () async {
-            signIn(emailController.text, passwordController.text, false);
-            logindata!.setBool('login', false);
-            logindata!.setString('email', emailController.text);
+            signIn(emailController.text, passwordController.text);
+            final prefs = await SharedPreferences.getInstance();
+            prefs.setBool('isLoggedIn', true);
           },
           child: _isLoading
               ? const SizedBox(
@@ -222,8 +232,47 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Future<void> route() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    final prefs = await SharedPreferences.getInstance();
+    var kk = await FirebaseFirestore.instance
+        .collection('teachers')
+        .doc(user!.uid)
+        .get()
+        .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        if (documentSnapshot.get('classCoord') == false) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const TeacherHome(),
+            ),
+          );
+          prefs.setBool('isLoggedIn', true);
+          prefs.setBool('isTeacher', true);
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomePage(),
+            ),
+          );
+          prefs.setBool('isLoggedIn', true);
+        }
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HomePage(),
+          ),
+        );
+        prefs.setBool('isLoggedIn', true);
+      }
+    });
+  }
+
   //Login Function
-  void signIn(String email, String password, bool isTeacher) async {
+  void signIn(String email, String password) async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -233,9 +282,7 @@ class _LoginScreenState extends State<LoginScreen> {
           .then((uid) => {
                 // checkforblock(),
                 Fluttertoast.showToast(msg: "Login Successfully"),
-                Navigator.of(context).pushReplacement(MaterialPageRoute(
-                    builder: (context) =>
-                        (isTeacher) ? MainScreen() : MainScreen())),
+                route()
               })
           .catchError((error) {
         switch (error.code) {

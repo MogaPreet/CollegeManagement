@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cms/main.dart';
 import 'package:cms/screens/teacher_signup.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:riverpod/riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user.dart';
 import 'login.dart';
@@ -127,6 +129,7 @@ class registration extends ConsumerStatefulWidget {
 class _registrationState extends ConsumerState<registration> {
   final _auth = FirebaseAuth.instance;
   bool _isLoading = false;
+  SharedPreferences? loginData;
   String? errorMessage;
   final _formKey = GlobalKey<FormState>();
   final firstNameEditingController = TextEditingController();
@@ -516,9 +519,9 @@ class _registrationState extends ConsumerState<registration> {
         .doc(user?.uid)
         .set(userModel.toMap());
     Fluttertoast.showToast(msg: "Account Created Successfully, Please Login");
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => LoginScreen()),
-        (route) => false);
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool('isLoggedIn', true);
+    Navigator.pushAndRemoveUntil(context,
+        MaterialPageRoute(builder: (context) => HomePage()), (route) => false);
   }
 }

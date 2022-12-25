@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/user.dart';
+import 'package:cms/screens/Teacher/home.dart';
 import 'package:cms/screens/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:multi_select_flutter/bottom_sheet/multi_select_bottom_sheet_fiel
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:multi_select_flutter/util/multi_select_list_type.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final selBranch = StateProvider<String>((ref) {
   return "COMPS";
@@ -92,7 +94,7 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
   final confirmPasswordEditingController = TextEditingController();
   bool _isLoading = false;
   final _auth = FirebaseAuth.instance;
-
+  SharedPreferences? loginData;
   String? errorMessage;
   final _formKey = GlobalKey<FormState>();
   static final List<String> _itSubjects = [
@@ -484,9 +486,17 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
         .doc(user?.uid)
         .set(teacherModel.toMap());
     Fluttertoast.showToast(msg: "Account Created Successfully, Please Login");
+    ref.watch(isTeacher.notifier).update((state) => true);
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool('isLoggedIn', true);
+    prefs.setBool('isTeacher', true);
     Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => LoginScreen()),
+        MaterialPageRoute(builder: (context) => TeacherHome()),
         (route) => false);
   }
 }
+
+final isTeacher = StateProvider<bool>((ref) {
+  return false;
+});
