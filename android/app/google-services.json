@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "208599616375",
+    "project_id": "cmsrgit",
+    "storage_bucket": "cmsrgit.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:208599616375:android:33aeea3ffb6ec7cd8baf72",
+        "android_client_info": {
+          "package_name": "com.example.cms"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "208599616375-j1hhqkds1fmu65beehlv15llrbgpf7mp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQ29fnMBpUBA9frcPey2oX-0kw6Wc6Gig"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "208599616375-j1hhqkds1fmu65beehlv15llrbgpf7mp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
