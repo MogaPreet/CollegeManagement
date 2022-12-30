@@ -3,7 +3,7 @@ class NoticeModel {
   String? url;
   String? title;
   String? desc;
-  String? toBranch;
+  List<String>? toBranch;
   String? createdAt;
   String? notifiedBy;
   NoticeModel({

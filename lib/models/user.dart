@@ -24,7 +24,7 @@ class StudentModel {
       email: map['email'],
       firstName: map['firstName'],
       lastName: map['lastName'],
-      branch: map['brnach'],
+      branch: map['branch'],
       rollNo: map['rollNo'],
       currentYear: map['currentYear'],
       isDse: map['isDse'],
@@ -76,7 +76,7 @@ class TeacherModel {
       email: map['email'],
       firstName: map['firstName'],
       lastName: map['lastName'],
-      branch: map['brnach'],
+      branch: map['branch'],
       subject: map['subject'],
       classCoord: map['classCoord'],
     );

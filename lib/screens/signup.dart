@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/main.dart';
+import 'package:cms/screens/Student/studentHome.dart';
 import 'package:cms/screens/teacher_signup.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -518,10 +519,12 @@ class _registrationState extends ConsumerState<registration> {
         .collection("students")
         .doc(user?.uid)
         .set(userModel.toMap());
-    Fluttertoast.showToast(msg: "Account Created Successfully, Please Login");
+    Fluttertoast.showToast(msg: "Account Created Successfully");
     final prefs = await SharedPreferences.getInstance();
     prefs.setBool('isLoggedIn', true);
-    Navigator.pushAndRemoveUntil(context,
-        MaterialPageRoute(builder: (context) => HomePage()), (route) => false);
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => StudentHomePage()),
+        (route) => false);
   }
 }

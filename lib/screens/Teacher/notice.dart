@@ -9,7 +9,7 @@ import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final isOptionSelected = StateProvider((ref) {
+final isOptionSelected = StateProvider.autoDispose((ref) {
   return false;
 });
 
@@ -33,7 +33,7 @@ class _NoticeState extends ConsumerState<Notice> {
     final noticeTitle = TextFormField(
       controller: noticeTitleController,
       validator: (value) {
-        if (value!.isEmpty) {
+        if (value != null && value.isEmpty) {
           return "Notice Name is Required";
         } else {
           return null;
@@ -99,12 +99,18 @@ class _NoticeState extends ConsumerState<Notice> {
       'CIVIL',
       'CHEMICAL'
     ];
-    String sendNoticeTo() {
+    List<String> currentb = [
+      widget.notifier.branch ?? "S",
+    ];
+    List<String>? sendNoticeTo() {
       final selection = ref.watch(isOptionSelected);
-      if (!selection) {
-        return widget.notifier.branch ?? "";
+      print(selection);
+      print(currentb);
+      if (selection) {
+        return branch;
+      } else {
+        return currentb;
       }
-      return branch.toString();
     }
 
     void addNotice() async {

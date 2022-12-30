@@ -1,5 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cms/models/user.dart';
+import 'package:cms/screens/Student/studentHome.dart';
+import 'package:cms/screens/Student/widgets/StudentCard.dart';
 import 'package:cms/screens/Teacher/home.dart';
 import 'package:cms/screens/login.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,7 +39,7 @@ class MyApp extends StatelessWidget {
         if (isTeacher) {
           return const TeacherHome();
         } else {
-          return const HomePage();
+          return const StudentHomePage();
         }
       }
       return const LoginScreen();
@@ -43,28 +48,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       home: routeLogin(isLoggedIn, isTeacher),
       debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.app_blocking))
-        ],
-        title: const Text("Hey !! i love flutter for a reason"),
-      ),
     );
   }
 }

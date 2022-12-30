@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/main.dart';
+import 'package:cms/screens/Student/studentHome.dart';
 import 'package:cms/screens/Teacher/home.dart';
 import 'package:cms/screens/homepage.dart';
 import 'package:cms/screens/signup.dart';
@@ -254,7 +255,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => const HomePage(),
+              builder: (context) => const StudentHomePage(),
             ),
           );
           prefs.setBool('isLoggedIn', true);
@@ -263,7 +264,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const HomePage(),
+            builder: (context) => const StudentHomePage(),
           ),
         );
         prefs.setBool('isLoggedIn', true);

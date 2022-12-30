@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/user.dart';
 import 'package:cms/screens/Teacher/notice.dart';
+import 'package:cms/screens/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TeacherHome extends StatefulWidget {
   const TeacherHome({super.key});
@@ -65,6 +67,14 @@ class _TeacherHomeState extends State<TeacherHome> {
         icon: const Icon(Icons.edit),
       ),
       appBar: AppBar(
+        actions: [
+          IconButton(
+            onPressed: () {
+              logout(context);
+            },
+            icon: const Icon(Icons.logout),
+          )
+        ],
         title: loggedInUser.firstName != null
             ? Text(loggedInUser.firstName ?? "")
             : const CircularProgressIndicator(),
@@ -80,7 +90,7 @@ class _TeacherHomeState extends State<TeacherHome> {
               ),
             ),
             showSubject(),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
           ],
@@ -88,4 +98,13 @@ class _TeacherHomeState extends State<TeacherHome> {
       ),
     );
   }
+}
+
+Future<void> logout(BuildContext context) async {
+  await FirebaseAuth.instance.signOut();
+  Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const LoginScreen()));
+  final prefs = await SharedPreferences.getInstance();
+  prefs.setBool('isLoggedIn', false);
+  prefs.setBool('isTeacher', false);
 }
