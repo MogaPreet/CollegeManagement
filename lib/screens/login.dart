@@ -5,6 +5,7 @@ import 'package:cms/screens/Teacher/home.dart';
 import 'package:cms/screens/homepage.dart';
 import 'package:cms/screens/signup.dart';
 import 'package:cms/screens/teacher_signup.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
+  final _firestore = FirebaseFirestore.instance;
+
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController emailController = TextEditingController();

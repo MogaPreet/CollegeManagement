@@ -4,7 +4,9 @@ import 'package:cms/screens/Student/widgets/StudentCard.dart';
 import 'package:cms/screens/Student/widgets/student_notice.dart';
 import 'package:cms/screens/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StudentHomePage extends StatefulWidget {
@@ -15,12 +17,35 @@ class StudentHomePage extends StatefulWidget {
 }
 
 class _StudentHomePageState extends State<StudentHomePage> {
+  final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
+
   User? user = FirebaseAuth.instance.currentUser;
   StudentModel student = StudentModel();
-
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
   @override
   void initState() {
     super.initState();
+    // firebaseMessaging.getToken().then((token) {
+    //   saveTokens(token);
+    // });
+    // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    //   RemoteNotification? notification = message.notification;
+    //   AndroidNotification? android = message.notification?.android;
+    //   if (notification != null && android != null) {
+    //     flutterLocalNotificationsPlugin.show(
+    //       notification.hashCode,
+    //       notification.title,
+    //       notification.body,
+    //       NotificationDetails(),
+    //     );
+    //   }
+    // });
+    // FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    //   print('A new onMessageOpenedApp event was published!');
+    //   // Navigator.pushNamed(context, '/message',
+    //   //     arguments: MessageArguments(message, true));
+    // });
     FirebaseFirestore.instance
         .collection('students')
         .doc(user!.uid)
@@ -30,6 +55,16 @@ class _StudentHomePageState extends State<StudentHomePage> {
       setState(() {});
     });
   }
+
+  // Future<void> saveTokens(var token) async {
+  //   try {
+  //     await _firestore.collection('tokens').add({
+  //       'token': token,
+  //     });
+  //   } catch (e) {
+  //     print(e);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +95,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                 height: 20,
               ),
               const Text(
-                "Notification ",
+                "Notice ",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,

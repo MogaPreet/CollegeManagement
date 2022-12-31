@@ -134,7 +134,7 @@ class _NoticeState extends ConsumerState<Notice> {
           notice.createdAt = Timestamp.now().toDate().toString();
           await FirebaseFirestore.instance
               .collection('notices')
-              .doc(noticeTitleController.text)
+              .doc()
               .set(notice.toMap());
 
           Navigator.pushAndRemoveUntil(

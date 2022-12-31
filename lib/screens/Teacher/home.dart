@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/user.dart';
+import 'package:cms/screens/Teacher/assignment.dart';
+import 'package:cms/screens/Teacher/fetch_student.dart';
 import 'package:cms/screens/Teacher/notice.dart';
 import 'package:cms/screens/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -40,8 +42,17 @@ class _TeacherHomeState extends State<TeacherHome> {
       return Column(
         children: subArrray.map((subjectName) {
           return Card(
-            child: ListTile(
-              title: Text(subjectName),
+            child: GestureDetector(
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AssignmentTeacherPage(
+                            teacher: loggedInUser,
+                            subject: subjectName,
+                          ))),
+              child: ListTile(
+                title: Text(subjectName),
+              ),
             ),
           );
         }).toList(),
@@ -93,6 +104,7 @@ class _TeacherHomeState extends State<TeacherHome> {
             const SizedBox(
               height: 20,
             ),
+            FetchStudent(myBranch: loggedInUser.branch ?? ""),
           ],
         ),
       ),
