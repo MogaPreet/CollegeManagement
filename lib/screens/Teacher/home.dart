@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/user.dart';
 import 'package:cms/screens/Teacher/assignment.dart';
@@ -5,6 +7,7 @@ import 'package:cms/screens/Teacher/fetch_student.dart';
 import 'package:cms/screens/Teacher/notice.dart';
 import 'package:cms/screens/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,46 +22,37 @@ class TeacherHome extends StatefulWidget {
 class _TeacherHomeState extends State<TeacherHome> {
   User? user = FirebaseAuth.instance.currentUser;
   TeacherModel loggedInUser = TeacherModel();
-
+  CollectionReference teacher =
+      FirebaseFirestore.instance.collection('teachers');
   @override
   void initState() {
     super.initState();
-    FirebaseFirestore.instance
-        .collection("teachers")
-        .doc(user!.uid)
-        .get()
-        .then((value) {
+    teacher.doc(user?.uid).get().then((value) {
       loggedInUser = TeacherModel.fromMap(value.data());
       setState(() {});
     });
   }
 
   Widget showSubject() {
-    final sub = loggedInUser.subject;
-    if (sub != null && sub.isNotEmpty) {
-      final subject = sub.replaceAll(RegExp(r"\p{P}", unicode: true), " ");
-      final a = subject.trim();
-      List<String> subArrray = a.split("  ");
-      return Column(
-        children: subArrray.map((subjectName) {
-          return Card(
-            child: GestureDetector(
-              onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => AssignmentTeacherPage(
-                            teacher: loggedInUser,
-                            subject: subjectName,
-                          ))),
-              child: ListTile(
-                title: Text(subjectName),
-              ),
-            ),
-          );
-        }).toList(),
-      );
-    }
-    return const Text("Loading");
+    print("brnahc ${loggedInUser.branch}");
+
+    int? val = loggedInUser.branch?.length;
+    return ListView.builder(
+        shrinkWrap: true,
+        itemCount: val,
+        itemBuilder: (context, index) {
+          // if (loggedInUser.branch != null) {
+          //   final subject = loggedInUser.branch
+          //       ?.map(
+          //         (e) => e,
+          //       )
+          //       .toString();
+          //   return ListTile(
+          //     title: Text(subject ?? "Subject"),
+          //   );
+          // }
+          return const Text("Loading ...");
+        });
   }
 
   @override
@@ -104,7 +98,7 @@ class _TeacherHomeState extends State<TeacherHome> {
             const SizedBox(
               height: 20,
             ),
-            FetchStudent(myBranch: loggedInUser.branch ?? ""),
+            FetchStudent(myBranch: loggedInUser.branch ?? [""]),
           ],
         ),
       ),

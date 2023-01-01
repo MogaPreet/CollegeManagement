@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/user.dart';
 import 'package:cms/screens/Teacher/home.dart';
+import 'package:cms/screens/Teacher/subject.dart';
 import 'package:cms/screens/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 final selBranch = StateProvider<String>((ref) {
   return "COMPS";
 });
+final selectedBranchs = StateProvider<List<String>>((ref) {
+  return [];
+});
 
 class BranchSelction extends ConsumerWidget {
   const BranchSelction({super.key});
@@ -22,54 +26,41 @@ class BranchSelction extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dropdownvalue = ref.watch(selBranch);
-
     var branch = ['COMPS', 'IT', 'EXTC', 'PLASTIC', 'CIVIL', 'CHEMICAL'];
+    final items = branch
+        .map((branch) => MultiSelectItem<String>(branch, branch))
+        .toList();
+    List<String>? selectedBranch = ref.watch(selectedBranchs);
+
+    void showMultiSelect(BuildContext context) async {
+      await showDialog(
+        context: context,
+        builder: (ctx) {
+          return MultiSelectDialog(
+            items: items,
+            initialValue: selectedBranch ?? [],
+            onConfirm: (values) {
+              selectedBranch = values.cast();
+              ref
+                  .watch(selectedBranchs.notifier)
+                  .update((state) => selectedBranch ?? []);
+            },
+          );
+        },
+      );
+    }
 
     return Column(
       children: [
-        const Text("Select Branch"),
+        GestureDetector(
+            onTap: () {
+              showMultiSelect(context);
+            },
+            child: const Text("Select Branch")),
         const SizedBox(
           height: 10,
         ),
-        DecoratedBox(
-          decoration: BoxDecoration(
-              color: Colors.black, borderRadius: BorderRadius.circular(8)),
-          child: Padding(
-            padding: const EdgeInsets.only(left: 15, right: 15),
-            child: DropdownButton(
-              // Initial Value
-              value: dropdownvalue,
-              disabledHint: const Text("Select Branch"),
-              style: const TextStyle(color: Colors.white),
-              underline: Container(),
-              borderRadius: BorderRadius.circular(2),
-              isExpanded: true,
-              dropdownColor: Colors.black,
-              // Down Arrow Icon
-
-              icon: const Icon(
-                Icons.keyboard_arrow_down,
-                color: Colors.white,
-              ),
-
-              // Array list of items
-              items: branch.map((String branch) {
-                return DropdownMenuItem(
-                  value: branch,
-                  child: Text(branch),
-                );
-              }).toList(),
-              // After selecting the desired option,it will
-
-              onChanged: (String? newValue) {
-                if (newValue != null && newValue.isNotEmpty) {
-                  ref.watch(selBranch.notifier).update((state) => newValue);
-                }
-              },
-              hint: const Text("Select Branch"),
-            ),
-          ),
-        ),
+        Text("Selected Branches are : $selectedBranch"),
       ],
     );
   }
@@ -138,6 +129,8 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
 
   @override
   Widget build(BuildContext context) {
+    List<String>? sub = [];
+
     final _items = theSubject()
         .map((subject) => MultiSelectItem<String>(subject, subject))
         .toList();
@@ -342,6 +335,7 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
                   const SizedBox(height: 20),
                   const BranchSelction(),
                   const SizedBox(height: 20),
+                  // SubjectYear(),
                   Container(
                     decoration: BoxDecoration(
                       color: Theme.of(context).primaryColor.withOpacity(.4),
@@ -352,27 +346,28 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
                     ),
                     child: Column(
                       children: <Widget>[
-                        MultiSelectBottomSheetField(
-                          initialChildSize: 0.4,
-                          listType: MultiSelectListType.CHIP,
-                          searchable: true,
-                          buttonText: const Text("Select Subjects"),
-                          title: const Text("Subjects"),
-                          items: _items,
-                          onConfirm: (values) {
-                            selectedSubject = values.cast();
-                            ref
-                                .watch(selectedSubjects.notifier)
-                                .update((state) => selectedSubject);
-                          },
-                          chipDisplay: MultiSelectChipDisplay(
-                            onTap: (value) {
-                              setState(() {
-                                selectedSubject.remove(value);
-                              });
-                            },
-                          ),
-                        ),
+                        SubjectYear(),
+                        // MultiSelectBottomSheetField(
+                        //   initialChildSize: 0.4,
+                        //   listType: MultiSelectListType.CHIP,
+                        //   searchable: true,
+                        //   buttonText: const Text("Select Subjects"),
+                        //   title: const Text("Subjects"),
+                        //   items: _items,
+                        //   onConfirm: (values) {
+                        //     selectedSubject = values.cast();
+                        //     ref
+                        //         .watch(selectedSubjects.notifier)
+                        //         .update((state) => selectedSubject);
+                        //   },
+                        //   chipDisplay: MultiSelectChipDisplay(
+                        //     onTap: (value) {
+                        //       setState(() {
+                        //         selectedSubject.remove(value);
+                        //       });
+                        //     },
+                        //   ),
+                        // ),
                         ref.watch(selectedSubjects).isEmpty
                             ? Container(
                                 padding: const EdgeInsets.all(10),
@@ -471,16 +466,16 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
     FirebaseFirestore firebaseFireStore = FirebaseFirestore.instance;
     User? user = _auth.currentUser;
     TeacherModel teacherModel = TeacherModel();
-    final teacherBranch = ref.watch(selBranch);
+    List<String>? selectedBranch = ref.watch(selectedBranchs);
     final selSub = ref.watch(selectedSubjects);
     teacherModel.email = user?.email;
 
     teacherModel.uid = user?.uid;
     teacherModel.firstName = firstNameEditingController.text;
     teacherModel.lastName = lastNameEditingController.text;
-    teacherModel.branch = teacherBranch;
+    teacherModel.branch = selectedBranch;
     teacherModel.classCoord = false;
-    teacherModel.subject = selSub.toString();
+    teacherModel.subject = selSub;
     await firebaseFireStore
         .collection("teachers")
         .doc(user?.uid)

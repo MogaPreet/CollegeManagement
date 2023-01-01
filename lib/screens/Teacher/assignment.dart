@@ -178,7 +178,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
           assignment.subject = widget.subject;
           assignment.assignedDate = DateTime.now();
           assignment.lastDate = currentDate;
-          assignment.toBranch = widget.teacher.branch;
+          assignment.toBranch = widget.teacher.branch.toString();
 
           await FirebaseFirestore.instance
               .collection('assignemnts')

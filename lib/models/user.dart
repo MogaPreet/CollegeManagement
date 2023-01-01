@@ -56,8 +56,8 @@ class TeacherModel {
   String? email;
   String? firstName;
   String? lastName;
-  String? branch;
-  String? subject;
+  List<String>? branch;
+  List<String>? subject;
   bool? classCoord;
 
   TeacherModel({
@@ -70,14 +70,16 @@ class TeacherModel {
     this.classCoord,
   });
 
-  factory TeacherModel.fromMap(map) {
+  factory TeacherModel.fromMap(
+    map,
+  ) {
     return TeacherModel(
       uid: map['uid'],
       email: map['email'],
       firstName: map['firstName'],
       lastName: map['lastName'],
-      branch: map['branch'],
-      subject: map['subject'],
+      branch: _toList(map['branch']),
+      subject: _toList(map['subject']),
       classCoord: map['classCoord'],
     );
   }
@@ -106,4 +108,12 @@ class Subject {
 enum Branch {
   IT,
   COMPS,
+}
+
+List<String> _toList(dynamic value) {
+  if (value == null) {
+    return <String>[];
+  }
+
+  return List<String>.from(value);
 }

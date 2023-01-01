@@ -99,9 +99,7 @@ class _NoticeState extends ConsumerState<Notice> {
       'CIVIL',
       'CHEMICAL'
     ];
-    List<String> currentb = [
-      widget.notifier.branch ?? "S",
-    ];
+    List<String> currentb = widget.notifier.branch ?? [];
     List<String>? sendNoticeTo() {
       final selection = ref.watch(isOptionSelected);
       print(selection);

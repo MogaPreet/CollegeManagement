@@ -7,7 +7,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class FetchStudent extends ConsumerStatefulWidget {
-  final String myBranch;
+  final List<String> myBranch;
   const FetchStudent({super.key, required this.myBranch});
 
   @override
@@ -28,7 +28,7 @@ class _FetchStudentState extends ConsumerState<FetchStudent> {
           const ForDse(),
           StreamBuilder<QuerySnapshot>(
               stream: students
-                  .where("branch", isEqualTo: widget.myBranch)
+                  .where("branch", arrayContainsAny: widget.myBranch)
                   .where("currentYear", isEqualTo: selectedYear)
                   .snapshots(includeMetadataChanges: true),
               builder: (BuildContext context,
@@ -38,8 +38,8 @@ class _FetchStudentState extends ConsumerState<FetchStudent> {
                 }
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Column(
-                    children: [
-                      const Center(child: CupertinoActivityIndicator())
+                    children: const [
+                      Center(child: CupertinoActivityIndicator())
                     ],
                   );
                 }
