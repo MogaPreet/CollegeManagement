@@ -20,7 +20,7 @@ class _FetchStudentState extends ConsumerState<FetchStudent> {
     final selectedYear = ref.watch(currentYear);
     CollectionReference students =
         FirebaseFirestore.instance.collection('students');
-
+    print("My Branch is equal  ${widget.myBranch}");
     return Padding(
       padding: const EdgeInsets.only(left: 10, right: 10),
       child: Column(
@@ -28,9 +28,9 @@ class _FetchStudentState extends ConsumerState<FetchStudent> {
           const ForDse(),
           StreamBuilder<QuerySnapshot>(
               stream: students
-                  .where("branch", arrayContainsAny: widget.myBranch)
+                  .where("branch", whereIn: widget.myBranch)
                   .where("currentYear", isEqualTo: selectedYear)
-                  .snapshots(includeMetadataChanges: true),
+                  .snapshots(),
               builder: (BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasError) {

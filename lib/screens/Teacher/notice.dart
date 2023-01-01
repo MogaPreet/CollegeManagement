@@ -134,7 +134,7 @@ class _NoticeState extends ConsumerState<Notice> {
               .collection('notices')
               .doc()
               .set(notice.toMap());
-
+          if (!mounted) return;
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => const TeacherHome()),

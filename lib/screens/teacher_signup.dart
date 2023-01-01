@@ -346,7 +346,7 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
                     ),
                     child: Column(
                       children: <Widget>[
-                        SubjectYear(),
+                        const SubjectYear(),
                         // MultiSelectBottomSheetField(
                         //   initialChildSize: 0.4,
                         //   listType: MultiSelectListType.CHIP,
@@ -480,11 +480,13 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
         .collection("teachers")
         .doc(user?.uid)
         .set(teacherModel.toMap());
-    Fluttertoast.showToast(msg: "Account Created Successfully, Please Login");
+
     ref.watch(isTeacher.notifier).update((state) => true);
     final prefs = await SharedPreferences.getInstance();
     prefs.setBool('isLoggedIn', true);
     prefs.setBool('isTeacher', true);
+    if (!mounted) return;
+    Fluttertoast.showToast(msg: "Account Created Successfully");
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => TeacherHome()),

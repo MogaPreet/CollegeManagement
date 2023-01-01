@@ -185,7 +185,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
               .doc()
               .set(assignment.toMap());
 
-          // ignore: use_build_context_synchronously
+          if (!mounted) return;
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => const TeacherHome()),
@@ -220,8 +220,8 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
-                          "Add Notice",
+                        Text(
+                          widget.subject,
                         ),
                         assignTitle,
                         const SizedBox(

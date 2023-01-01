@@ -33,30 +33,31 @@ class _TeacherHomeState extends State<TeacherHome> {
     });
   }
 
-  Widget showSubject() {
-    print("brnahc ${loggedInUser.branch}");
+  // Widget showSubject() {
+  //   print("branch ${loggedInUser.branch}");
 
-    int? val = loggedInUser.branch?.length;
-    return ListView.builder(
-        shrinkWrap: true,
-        itemCount: val,
-        itemBuilder: (context, index) {
-          // if (loggedInUser.branch != null) {
-          //   final subject = loggedInUser.branch
-          //       ?.map(
-          //         (e) => e,
-          //       )
-          //       .toString();
-          //   return ListTile(
-          //     title: Text(subject ?? "Subject"),
-          //   );
-          // }
-          return const Text("Loading ...");
-        });
-  }
+  //   int? val = loggedInUser.branch?.length;
+  //   return ListView.builder(
+  //       shrinkWrap: true,
+  //       itemCount: val,
+  //       itemBuilder: (context, index) {
+  //         // if (loggedInUser.branch != null) {
+  //         //   final subject = loggedInUser.branch
+  //         //       ?.map(
+  //         //         (e) => e,
+  //         //       )
+  //         //       .toString();
+  //         //   return ListTile(
+  //         //     title: Text(subject ?? "Subject"),
+  //         //   );
+  //         // }
+  //         return const Text("Loading ...");
+  //       });
+  // }
 
   @override
   Widget build(BuildContext context) {
+    print(loggedInUser.branch);
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -94,7 +95,9 @@ class _TeacherHomeState extends State<TeacherHome> {
                 'My Subjects',
               ),
             ),
-            showSubject(),
+            ShowSubject(
+              teacher: loggedInUser,
+            ),
             const SizedBox(
               height: 20,
             ),
@@ -103,6 +106,45 @@ class _TeacherHomeState extends State<TeacherHome> {
         ),
       ),
     );
+  }
+}
+
+class ShowSubject extends StatefulWidget {
+  final TeacherModel teacher;
+  const ShowSubject({super.key, required this.teacher});
+
+  @override
+  State<ShowSubject> createState() => _ShowSubjectState();
+}
+
+class _ShowSubjectState extends State<ShowSubject> {
+  @override
+  Widget build(BuildContext context) {
+    print("branch ${widget.teacher.subject}");
+
+    int? val = widget.teacher.subject?.length;
+    if (widget.teacher.subject != null && widget.teacher.subject!.isNotEmpty) {
+      return ListView.builder(
+          shrinkWrap: true,
+          itemCount: val,
+          itemBuilder: (context, index) {
+            return ListTile(
+                trailing: GestureDetector(
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return AssignmentTeacherPage(
+                            teacher: widget.teacher,
+                            subject: widget.teacher.subject![index]);
+                      }));
+                    },
+                    child: const Text("Assign Asignment")),
+                title: Text(
+                  widget.teacher.subject![index],
+                ));
+          });
+    }
+    return const CircularProgressIndicator();
   }
 }
 
