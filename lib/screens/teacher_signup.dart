@@ -20,6 +20,22 @@ final selectedBranchs = StateProvider<List<String>>((ref) {
   return [];
 });
 
+final year1 = StateProvider<List<String>>((ref) {
+  return [];
+});
+
+final year2 = StateProvider<List<String>>((ref) {
+  return [];
+});
+
+final year3 = StateProvider<List<String>>((ref) {
+  return [];
+});
+
+final year4 = StateProvider<List<String>>((ref) {
+  return [];
+});
+
 class BranchSelction extends ConsumerWidget {
   const BranchSelction({super.key});
 
@@ -298,7 +314,7 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
                   ),
                 ),
         ));
-    final myBranches = ref.watch(selectedBranchs);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -344,13 +360,25 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
                   const BranchSelction(),
                   const SizedBox(height: 20),
                   // SubjectYear(),
-                  SubjectSel(forYear: "First Year"),
+                  SubjectSel(
+                    forYear: "First Year",
+                    selectedYear: year1,
+                  ),
                   const SizedBox(height: 20),
-                  SubjectSel(forYear: "Second Year"),
+                  SubjectSel(
+                    forYear: "Second Year",
+                    selectedYear: year2,
+                  ),
                   const SizedBox(height: 20),
-                  SubjectSel(forYear: "Third Year"),
+                  SubjectSel(
+                    forYear: "Third Year",
+                    selectedYear: year3,
+                  ),
                   const SizedBox(height: 20),
-                  SubjectSel(forYear: "Fourth Year"),
+                  SubjectSel(
+                    forYear: "Fourth Year",
+                    selectedYear: year4,
+                  ),
                   const SizedBox(height: 20),
                   const SizedBox(height: 20),
                   emailField,
@@ -441,7 +469,6 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
     List<String>? selectedBranch = ref.watch(selectedBranchs);
     final selSub = ref.watch(selectedSubjects);
     teacherModel.email = user?.email;
-
     teacherModel.uid = user?.uid;
     teacherModel.firstName = firstNameEditingController.text;
     teacherModel.lastName = lastNameEditingController.text;
@@ -461,7 +488,7 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
     Fluttertoast.showToast(msg: "Account Created Successfully");
     Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => TeacherHome()),
+        MaterialPageRoute(builder: (context) => const TeacherHome()),
         (route) => false);
   }
 }
@@ -472,7 +499,9 @@ final isTeacher = StateProvider<bool>((ref) {
 
 class SubjectSel extends ConsumerStatefulWidget {
   final String forYear;
-  const SubjectSel({super.key, required this.forYear});
+  final StateProvider<List<String>> selectedYear;
+  const SubjectSel(
+      {super.key, required this.forYear, required this.selectedYear});
 
   @override
   ConsumerState<SubjectSel> createState() => _SubjectSelState();
@@ -484,9 +513,9 @@ class _SubjectSelState extends ConsumerState<SubjectSel> {
     final myBranches = ref.watch(selectedBranchs);
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withOpacity(.4),
+        color: Colors.black45,
         border: Border.all(
-          color: Theme.of(context).primaryColor,
+          color: Colors.white38,
           width: 2,
         ),
       ),
@@ -501,18 +530,38 @@ class _SubjectSelState extends ConsumerState<SubjectSel> {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: const [
-                                Text("Select Subject year-wise"),
-                                CloseButton(),
+                            Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                        "Select Subject for ${widget.forYear}"),
+                                    const CloseButton(),
+                                  ],
+                                ),
+                                subProvidingYear(
+                                  myBranches: myBranches,
+                                  widget: widget,
+                                  selectedYear: widget.selectedYear,
+                                ),
                               ],
                             ),
-                            SubjectYear(
-                              myBranches: myBranches,
-                              forYear: widget.forYear,
-                            ),
+                            TextButton(
+                                style: ButtonStyle(
+                                  backgroundColor: MaterialStateProperty.all(
+                                    Colors.black45,
+                                  ),
+                                  foregroundColor:
+                                      MaterialStateProperty.all(Colors.white),
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text("Confirm")),
                           ],
                         ),
                       ),
@@ -521,19 +570,78 @@ class _SubjectSelState extends ConsumerState<SubjectSel> {
                   context: context,
                 );
               },
-              child: Text("Show SUbjects for ${widget.forYear}"),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Show Subjects for ${widget.forYear}",
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  const Icon(
+                    Icons.arrow_right_rounded,
+                    color: Colors.white,
+                  )
+                ],
+              ),
             ),
-          ref.watch(selectedSubjects).isEmpty
+          ref.watch(widget.selectedYear).isEmpty
               ? Container(
                   padding: const EdgeInsets.all(10),
                   alignment: Alignment.centerLeft,
                   child: const Text(
-                    "None selected",
+                    "",
                     style: TextStyle(color: Colors.black54),
                   ))
-              : Container(),
+              : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(color: Colors.grey.shade100),
+                    child: ListOfSubs(selectedYear: widget.selectedYear),
+                  ),
+                ),
         ],
       ),
+    );
+  }
+}
+
+class ListOfSubs extends ConsumerWidget {
+  final StateProvider<List<String>> selectedYear;
+  const ListOfSubs({super.key, required this.selectedYear});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final subs = ref.watch(selectedYear);
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: subs.length,
+      itemBuilder: ((context, index) {
+        final prpSubjects = subs[index];
+        return Card(child: Text(prpSubjects));
+      }),
+    );
+  }
+}
+
+class subProvidingYear extends StatelessWidget {
+  final StateProvider<List<String>> selectedYear;
+  const subProvidingYear({
+    Key? key,
+    required this.myBranches,
+    required this.widget,
+    required this.selectedYear,
+  }) : super(key: key);
+
+  final List<String> myBranches;
+  final SubjectSel widget;
+
+  @override
+  Widget build(BuildContext context) {
+    return SubjectYear(
+      myBranches: myBranches,
+      forYear: widget.forYear,
+      selectedYear: widget.selectedYear,
     );
   }
 }

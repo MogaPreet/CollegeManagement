@@ -20,8 +20,12 @@ final selectedYear = StateProvider.autoDispose<List<String>>((ref) {
 class SubjectYear extends ConsumerStatefulWidget {
   final List<String> myBranches;
   final String forYear;
+  final StateProvider<List<String>> selectedYear;
   const SubjectYear(
-      {super.key, required this.myBranches, required this.forYear});
+      {super.key,
+      required this.myBranches,
+      required this.forYear,
+      required this.selectedYear});
 
   @override
   ConsumerState<SubjectYear> createState() => _SubjectYearState();
@@ -34,7 +38,7 @@ class _SubjectYearState extends ConsumerState<SubjectYear> {
   List<String> display(List<String> myBranches, WidgetRef ref, String forYear) {
     Subject subjects = Subject();
     List<String> showThis = [];
-    print(forYear);
+
     final year = ref.watch(selectedYear);
 
     FirebaseFirestore.instance
@@ -45,7 +49,13 @@ class _SubjectYearState extends ConsumerState<SubjectYear> {
       for (var ele in value.docs) {
         subjects = Subject.fromMap(ele.data());
 
-        showThis = subjects.aids! + subjects.compsEngg! + subjects.civilEngg!;
+        showThis = subjects.aids! +
+            subjects.compsEngg! +
+            subjects.civilEngg! +
+            subjects.electricalEngg! +
+            subjects.electronicEngg! +
+            subjects.infoTech! +
+            subjects.mechEngg!;
       }
 
       ref.watch(selectedYear.notifier).update((state) => showThis);
@@ -73,18 +83,21 @@ class _SubjectYearState extends ConsumerState<SubjectYear> {
         onConfirm: (values) {
           selectedSubject = values.cast();
           ref
-              .watch(selectedSubjects.notifier)
+              .watch(widget.selectedYear.notifier)
               .update((state) => selectedSubject);
         },
         chipDisplay: MultiSelectChipDisplay(
           onTap: (value) {
-            setState(() {
-              selectedSubject.remove(value);
-            });
+            // setState(() {
+            //   selectedSubject.remove(value);
+            //   ref
+            //       .watch(widget.selectedYear.notifier)
+            //       .update((state) => selectedSubject);
+            // });
           },
         ),
       );
     }
-    return Center(child: CircularProgressIndicator());
+    return const Center(child: CircularProgressIndicator());
   }
 }
