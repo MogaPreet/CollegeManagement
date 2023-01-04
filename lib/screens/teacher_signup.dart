@@ -26,7 +26,15 @@ class BranchSelction extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dropdownvalue = ref.watch(selBranch);
-    var branch = ['COMPS', 'IT', 'EXTC', 'PLASTIC', 'CIVIL', 'CHEMICAL'];
+    var branch = [
+      'Artificial Intelligence & Data Science',
+      'Civil Engineering',
+      'Computer Engineering',
+      'Electrical Engineering',
+      'Electronics Engineering',
+      'Information Technology',
+      'Mechanical Engineering'
+    ];
     final items = branch
         .map((branch) => MultiSelectItem<String>(branch, branch))
         .toList();
@@ -290,7 +298,7 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
                   ),
                 ),
         ));
-
+    final myBranches = ref.watch(selectedBranchs);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -336,50 +344,14 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
                   const BranchSelction(),
                   const SizedBox(height: 20),
                   // SubjectYear(),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withOpacity(.4),
-                      border: Border.all(
-                        color: Theme.of(context).primaryColor,
-                        width: 2,
-                      ),
-                    ),
-                    child: Column(
-                      children: <Widget>[
-                        const SubjectYear(),
-                        // MultiSelectBottomSheetField(
-                        //   initialChildSize: 0.4,
-                        //   listType: MultiSelectListType.CHIP,
-                        //   searchable: true,
-                        //   buttonText: const Text("Select Subjects"),
-                        //   title: const Text("Subjects"),
-                        //   items: _items,
-                        //   onConfirm: (values) {
-                        //     selectedSubject = values.cast();
-                        //     ref
-                        //         .watch(selectedSubjects.notifier)
-                        //         .update((state) => selectedSubject);
-                        //   },
-                        //   chipDisplay: MultiSelectChipDisplay(
-                        //     onTap: (value) {
-                        //       setState(() {
-                        //         selectedSubject.remove(value);
-                        //       });
-                        //     },
-                        //   ),
-                        // ),
-                        ref.watch(selectedSubjects).isEmpty
-                            ? Container(
-                                padding: const EdgeInsets.all(10),
-                                alignment: Alignment.centerLeft,
-                                child: const Text(
-                                  "None selected",
-                                  style: TextStyle(color: Colors.black54),
-                                ))
-                            : Container(),
-                      ],
-                    ),
-                  ),
+                  SubjectSel(forYear: "First Year"),
+                  const SizedBox(height: 20),
+                  SubjectSel(forYear: "Second Year"),
+                  const SizedBox(height: 20),
+                  SubjectSel(forYear: "Third Year"),
+                  const SizedBox(height: 20),
+                  SubjectSel(forYear: "Fourth Year"),
+                  const SizedBox(height: 20),
                   const SizedBox(height: 20),
                   emailField,
                   const SizedBox(height: 20),
@@ -497,3 +469,71 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
 final isTeacher = StateProvider<bool>((ref) {
   return false;
 });
+
+class SubjectSel extends ConsumerStatefulWidget {
+  final String forYear;
+  const SubjectSel({super.key, required this.forYear});
+
+  @override
+  ConsumerState<SubjectSel> createState() => _SubjectSelState();
+}
+
+class _SubjectSelState extends ConsumerState<SubjectSel> {
+  @override
+  Widget build(BuildContext context) {
+    final myBranches = ref.watch(selectedBranchs);
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).primaryColor.withOpacity(.4),
+        border: Border.all(
+          color: Theme.of(context).primaryColor,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        children: <Widget>[
+          if (myBranches.isNotEmpty)
+            TextButton(
+              onPressed: () {
+                showDialog(
+                  builder: (context) {
+                    return Material(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: const [
+                                Text("Select Subject year-wise"),
+                                CloseButton(),
+                              ],
+                            ),
+                            SubjectYear(
+                              myBranches: myBranches,
+                              forYear: widget.forYear,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  context: context,
+                );
+              },
+              child: Text("Show SUbjects for ${widget.forYear}"),
+            ),
+          ref.watch(selectedSubjects).isEmpty
+              ? Container(
+                  padding: const EdgeInsets.all(10),
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    "None selected",
+                    style: TextStyle(color: Colors.black54),
+                  ))
+              : Container(),
+        ],
+      ),
+    );
+  }
+}

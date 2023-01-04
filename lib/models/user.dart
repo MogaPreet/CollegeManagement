@@ -78,8 +78,8 @@ class TeacherModel {
       email: map['email'],
       firstName: map['firstName'],
       lastName: map['lastName'],
-      branch: _toList(map['branch']),
-      subject: _toList(map['subject']),
+      branch: toListX(map['branch']),
+      subject: toListX(map['subject']),
       classCoord: map['classCoord'],
     );
   }
@@ -110,7 +110,7 @@ enum Branch {
   COMPS,
 }
 
-List<String> _toList(dynamic value) {
+List<String> toListX(dynamic value) {
   if (value == null) {
     return <String>[];
   }
