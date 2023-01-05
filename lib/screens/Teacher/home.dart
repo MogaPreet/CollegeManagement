@@ -57,7 +57,6 @@ class _TeacherHomeState extends State<TeacherHome> {
 
   @override
   Widget build(BuildContext context) {
-    print(loggedInUser.branch);
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cms/models/subjects.dart';
 import 'package:cms/models/user.dart';
 import 'package:cms/screens/Teacher/home.dart';
 import 'package:cms/screens/Teacher/subject.dart';
@@ -484,6 +485,7 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
     final prefs = await SharedPreferences.getInstance();
     prefs.setBool('isLoggedIn', true);
     prefs.setBool('isTeacher', true);
+    await addSubjectsToDb(user!.uid, ref);
     if (!mounted) return;
     Fluttertoast.showToast(msg: "Account Created Successfully");
     Navigator.pushAndRemoveUntil(
@@ -491,6 +493,33 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
         MaterialPageRoute(builder: (context) => const TeacherHome()),
         (route) => false);
   }
+}
+
+Future<String>? addSubjectsToDb(String id, WidgetRef ref) async {
+  TeacherSubjects teacherSubjects = TeacherSubjects();
+  final yearFirst = ref.watch(year1);
+  final yearSecond = ref.watch(year2);
+  final yearThird = ref.watch(year3);
+  final yearFourth = ref.watch(year4);
+
+  CollectionReference teacher =
+      FirebaseFirestore.instance.collection("teachers");
+  CollectionReference<Map<String, dynamic>> dbRef =
+      teacher.doc(id).collection("subjects");
+
+  teacherSubjects.year = "First Year";
+  teacherSubjects.subjects = yearFirst;
+  await dbRef.add(teacherSubjects.toJson());
+  teacherSubjects.year = "Second Year";
+  teacherSubjects.subjects = yearSecond;
+  await dbRef.add(teacherSubjects.toJson());
+  teacherSubjects.year = "Third Year";
+  teacherSubjects.subjects = yearThird;
+  await dbRef.add(teacherSubjects.toJson());
+  teacherSubjects.year = "Fourth Year";
+  teacherSubjects.subjects = yearFourth;
+  await dbRef.add(teacherSubjects.toJson());
+  return 'Success';
 }
 
 final isTeacher = StateProvider<bool>((ref) {
