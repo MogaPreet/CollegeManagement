@@ -48,14 +48,38 @@ class _SubjectYearState extends ConsumerState<SubjectYear> {
         .then((value) {
       for (var ele in value.docs) {
         subjects = Subject.fromMap(ele.data());
-
-        showThis = subjects.aids! +
-            subjects.compsEngg! +
-            subjects.civilEngg! +
-            subjects.electricalEngg! +
-            subjects.electronicEngg! +
-            subjects.infoTech! +
-            subjects.mechEngg!;
+        int i = 0;
+        while (i < myBranches.length) {
+          if (myBranches[i] == "Artificial Intelligence & Data Science") {
+            showThis.addAll(subjects.aids ?? []);
+          }
+          if (myBranches[i] == "Civil Engineering") {
+            showThis.addAll(subjects.civilEngg ?? []);
+          }
+          if (myBranches[i] == "Computer Engineering") {
+            showThis.addAll(subjects.compsEngg ?? []);
+          }
+          if (myBranches[i] == "Electrical Engineering") {
+            showThis.addAll(subjects.electricalEngg ?? []);
+          }
+          if (myBranches[i] == "Electronics Engineering") {
+            showThis.addAll(subjects.electronicEngg ?? []);
+          }
+          if (myBranches[i] == "Information Technology") {
+            showThis.addAll(subjects.infoTech ?? []);
+          }
+          if (myBranches[i] == "Mechanical Engineering") {
+            showThis.addAll(subjects.mechEngg ?? []);
+          }
+          i++;
+        }
+        // showThis = subjects.aids! +
+        //     subjects.compsEngg! +
+        //     subjects.civilEngg! +
+        //     subjects.electricalEngg! +
+        //     subjects.electronicEngg! +
+        //     subjects.infoTech! +
+        //     subjects.mechEngg!;
       }
 
       ref.watch(selectedYear.notifier).update((state) => showThis);
