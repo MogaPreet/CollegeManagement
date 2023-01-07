@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/subjects.dart';
+import 'package:cms/screens/Student/widgets/progressIndicator.dart';
 import 'package:cms/screens/teacher_signup.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -122,6 +123,6 @@ class _SubjectYearState extends ConsumerState<SubjectYear> {
         ),
       );
     }
-    return const Center(child: CircularProgressIndicator());
+    return const Center(child: ProgressIndication());
   }
 }

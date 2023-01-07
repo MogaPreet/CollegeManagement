@@ -1,7 +1,12 @@
 import 'dart:convert';
+import 'dart:math';
 
+import 'package:bottom_navy_bar/bottom_navy_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cms/models/subjects.dart';
 import 'package:cms/models/user.dart';
+import 'package:cms/screens/Student/studentHome.dart';
+import 'package:cms/screens/Student/widgets/progressIndicator.dart';
 import 'package:cms/screens/Teacher/assignment.dart';
 import 'package:cms/screens/Teacher/fetch_student.dart';
 import 'package:cms/screens/Teacher/notice.dart';
@@ -20,6 +25,7 @@ class TeacherHome extends StatefulWidget {
 }
 
 class _TeacherHomeState extends State<TeacherHome> {
+  int _currentIndex = 0;
   User? user = FirebaseAuth.instance.currentUser;
   TeacherModel loggedInUser = TeacherModel();
   CollectionReference teacher =
@@ -54,10 +60,71 @@ class _TeacherHomeState extends State<TeacherHome> {
   //         return const Text("Loading ...");
   //       });
   // }
+  Widget AppBarText() {
+    switch (_currentIndex) {
+      case 0:
+        return const Text("My Subjects");
+      case 1:
+        return const Text("My Students");
+      default:
+    }
+    return const Text("Something went Wrong");
+  }
+
+  Widget ShowWidget() {
+    switch (_currentIndex) {
+      case 0:
+        return SubjectPage(
+          loggedInUser: loggedInUser,
+        );
+
+      case 1:
+        return FetchStudent(myBranch: loggedInUser.branch ?? []);
+    }
+    return SubjectPage(loggedInUser: loggedInUser);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: BottomNavyBar(
+        selectedIndex: _currentIndex,
+        showElevation: true,
+        itemCornerRadius: 24,
+        curve: Curves.easeIn,
+        backgroundColor: Colors.white30,
+        onItemSelected: (index) {
+          if (mounted) setState(() => _currentIndex = index);
+        },
+        items: <BottomNavyBarItem>[
+          BottomNavyBarItem(
+            icon: const Icon(Icons.apps),
+            title: const Text('Subjects'),
+            activeColor: Colors.red,
+            textAlign: TextAlign.center,
+          ),
+          BottomNavyBarItem(
+            icon: const Icon(Icons.people),
+            title: const Text('Students'),
+            activeColor: Colors.purpleAccent,
+            textAlign: TextAlign.center,
+          ),
+          BottomNavyBarItem(
+            icon: const Icon(Icons.message),
+            title: const Text(
+              'Messages test for mes teset test test ',
+            ),
+            activeColor: Colors.pink,
+            textAlign: TextAlign.center,
+          ),
+          BottomNavyBarItem(
+            icon: const Icon(Icons.settings),
+            title: const Text('Settings'),
+            activeColor: Colors.blue,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -72,6 +139,8 @@ class _TeacherHomeState extends State<TeacherHome> {
         icon: const Icon(Icons.edit),
       ),
       appBar: AppBar(
+        centerTitle: true,
+        backgroundColor: Colors.black87,
         actions: [
           IconButton(
             onPressed: () {
@@ -80,70 +149,173 @@ class _TeacherHomeState extends State<TeacherHome> {
             icon: const Icon(Icons.logout),
           )
         ],
-        title: loggedInUser.firstName != null
-            ? Text(loggedInUser.firstName ?? "")
-            : const CircularProgressIndicator(),
+        title: AppBarText(),
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: <Widget>[
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(
-                'My Subjects',
-              ),
-            ),
-            ShowSubject(
-              teacher: loggedInUser,
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            FetchStudent(myBranch: loggedInUser.branch ?? [""]),
-          ],
-        ),
+      body: ShowWidget(),
+    );
+  }
+}
+
+class SubjectPage extends StatelessWidget {
+  const SubjectPage({
+    Key? key,
+    required this.loggedInUser,
+  }) : super(key: key);
+
+  final TeacherModel loggedInUser;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: (loggedInUser.years != null)
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  if (loggedInUser.years!.contains("First Year"))
+                    ShowSubject(
+                      teacher: loggedInUser,
+                      year: "First Year",
+                    ),
+                  if (loggedInUser.years!.contains("Second Year"))
+                    ShowSubject(
+                      teacher: loggedInUser,
+                      year: "Second Year",
+                    ),
+                  if (loggedInUser.years!.contains("Third Year"))
+                    ShowSubject(
+                      teacher: loggedInUser,
+                      year: "Third Year",
+                    ),
+                  if (loggedInUser.years!.contains("Fourth Year"))
+                    ShowSubject(
+                      teacher: loggedInUser,
+                      year: "Fourth Year",
+                    ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                ],
+              )
+            : const Center(child: ProgressIndication()),
       ),
     );
   }
 }
 
-class ShowSubject extends StatefulWidget {
+final mySubjects = StateProvider<List<String>>((ref) {
+  return [];
+});
+
+class ShowSubject extends ConsumerStatefulWidget {
   final TeacherModel teacher;
-  const ShowSubject({super.key, required this.teacher});
+  final String year;
+  const ShowSubject({
+    super.key,
+    required this.teacher,
+    required this.year,
+  });
 
   @override
-  State<ShowSubject> createState() => _ShowSubjectState();
+  ConsumerState<ShowSubject> createState() => _ShowSubjectState();
 }
 
-class _ShowSubjectState extends State<ShowSubject> {
+class _ShowSubjectState extends ConsumerState<ShowSubject> {
+  TeacherSubjects subject = TeacherSubjects();
+  List<String> subjectsAll = [];
+  List<String> getDetails() {
+    FirebaseFirestore.instance
+        .collection('teachers')
+        .doc(widget.teacher.uid)
+        .collection("subjects")
+        .where("year", isEqualTo: widget.year)
+        .get()
+        .then((value) {
+      for (var i in value.docs) {
+        subject = TeacherSubjects.fromJson(i.data());
+        setState(() {});
+        break;
+      }
+      subjectsAll = subject.subjects ?? [];
+      ref.watch(mySubjects.notifier).update((state) => subject.subjects ?? []);
+    });
+    return subjectsAll;
+  }
+
+  final List<Color> cols = [
+    Colors.red.shade50,
+    Colors.blue.shade50,
+    Colors.green.shade50
+  ];
+
+  Color randomGenerator() {
+    return cols[Random().nextInt(3)];
+  }
+
   @override
   Widget build(BuildContext context) {
-    print("branch ${widget.teacher.subject}");
+    final mysubs = getDetails();
 
-    int? val = widget.teacher.subject?.length;
-    if (widget.teacher.subject != null && widget.teacher.subject!.isNotEmpty) {
-      return ListView.builder(
-          shrinkWrap: true,
-          itemCount: val,
-          itemBuilder: (context, index) {
-            return ListTile(
-                trailing: GestureDetector(
-                    onTap: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) {
-                        return AssignmentTeacherPage(
-                            teacher: widget.teacher,
-                            subject: widget.teacher.subject![index]);
-                      }));
-                    },
-                    child: const Text("Assign Asignment")),
-                title: Text(
-                  widget.teacher.subject![index],
-                ));
-          });
+    int? val = mysubs.length;
+    if (mysubs != null && mysubs.isNotEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
+            child: Text(
+              widget.year,
+              style: TextStyle(
+                color: Colors.grey.shade900,
+                fontWeight: FontWeight.w800,
+                fontSize: 18,
+              ),
+            ),
+          ),
+          GridView.builder(
+            shrinkWrap: true,
+            itemCount: val,
+            physics: const BouncingScrollPhysics(),
+            itemBuilder: (context, index) {
+              return Card(
+                elevation: 6,
+                // color: randomGenerator(),
+                shadowColor: Colors.grey.shade50,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Center(
+                    child: Text(
+                      subject.subjects![index],
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+            padding: const EdgeInsets.all(8),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 2,
+              childAspectRatio: 1.5,
+              mainAxisSpacing: 2,
+            ),
+          ),
+        ],
+      );
     }
-    return const CircularProgressIndicator();
+    return Column(
+      children: [
+        const ProgressIndication(),
+        TextButton(onPressed: () {}, child: const Text("Loading..."))
+      ],
+    );
   }
 }
 

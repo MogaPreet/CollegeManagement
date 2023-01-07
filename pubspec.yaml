@@ -49,6 +49,7 @@ dependencies:
   syncfusion_flutter_datepicker: ^20.4.41
   firebase_storage: ^11.0.10
   file_picker: ^5.2.4
+  bottom_navy_bar: ^6.0.0
 
 dev_dependencies:
   flutter_test:

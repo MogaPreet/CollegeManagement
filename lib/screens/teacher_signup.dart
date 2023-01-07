@@ -20,7 +20,9 @@ final selBranch = StateProvider<String>((ref) {
 final selectedBranchs = StateProvider<List<String>>((ref) {
   return [];
 });
-
+final yearList = StateProvider<List<String>>((ref) {
+  return [];
+});
 final year1 = StateProvider<List<String>>((ref) {
   return [];
 });
@@ -154,13 +156,6 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
 
   @override
   Widget build(BuildContext context) {
-    List<String>? sub = [];
-
-    final _items = theSubject()
-        .map((subject) => MultiSelectItem<String>(subject, subject))
-        .toList();
-    List<String> selectedSubject = [];
-
     //fields
     final firstNameField = TextFormField(
       autofocus: false,
@@ -427,8 +422,15 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
         _isLoading = true;
       });
       await _auth
-          .createUserWithEmailAndPassword(email: email, password: password)
-          .then((value) => {postDetailsToFirestore(ref)})
+          .createUserWithEmailAndPassword(
+            email: email,
+            password: password,
+          )
+          .then(
+            (value) => {
+              postDetailsToFirestore(ref),
+            },
+          )
           .catchError((error) {
         switch (error.code) {
           case "invalid-email":
@@ -475,7 +477,7 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
     teacherModel.lastName = lastNameEditingController.text;
     teacherModel.branch = selectedBranch;
     teacherModel.classCoord = false;
-    teacherModel.subject = selSub;
+    teacherModel.years = myYears(ref);
     await firebaseFireStore
         .collection("teachers")
         .doc(user?.uid)
@@ -673,4 +675,33 @@ class subProvidingYear extends StatelessWidget {
       selectedYear: widget.selectedYear,
     );
   }
+}
+
+List<String>? myYears(WidgetRef ref) {
+  List<String> tempList = [];
+  var allYear = ref.watch(yearList);
+  final firstYear = ref.watch(year1);
+  final secondYear = ref.watch(year2);
+  final thirdYear = ref.watch(year3);
+  final fourthYear = ref.watch(year4);
+
+  if (firstYear.isNotEmpty) {
+    tempList.add("First Year");
+    ref.watch(yearList.notifier).update((state) => tempList);
+  }
+  if (secondYear.isNotEmpty) {
+    tempList.add("Second Year");
+    ref.watch(yearList.notifier).update((state) => tempList);
+  }
+  if (thirdYear.isNotEmpty) {
+    tempList.add("Third Year");
+    ref.watch(yearList.notifier).update((state) => tempList);
+  }
+  if (fourthYear.isNotEmpty) {
+    tempList.add("Fourth Year");
+    ref.watch(yearList.notifier).update((state) => tempList);
+  }
+  print(tempList);
+  print(allYear);
+  return tempList;
 }

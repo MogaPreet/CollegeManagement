@@ -19,7 +19,7 @@ final isDSEStudent = StateProvider<bool>((ref) {
   return false;
 });
 final currentYear = StateProvider<String>((ref) {
-  return "1st Year";
+  return "First Year";
 });
 
 class ForDse extends ConsumerWidget {
@@ -28,7 +28,7 @@ class ForDse extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedYear = ref.watch(currentYear);
-    var years = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+    var years = ['First Year', 'Second Year', 'Third Year', 'Fourth Year'];
 
     return Column(
       children: [
@@ -71,7 +71,7 @@ class ForDse extends ConsumerWidget {
                 }
 
                 ref.read(showDse.notifier).update((state) {
-                  return newValue == "2nd Year" ? true : false;
+                  return newValue == "Second Year" ? true : false;
                 });
               },
               hint: const Text("Select Year"),
@@ -139,9 +139,17 @@ class _registrationState extends ConsumerState<registration> {
   final emailEditingController = TextEditingController();
   final passwordEditingController = TextEditingController();
   final confirmPasswordEditingController = TextEditingController();
-  String dropdownvalue = 'COMPS';
+  String dropdownvalue = 'Civil Engineering';
 
-  var branch = ['COMPS', 'IT', 'EXTC', 'PLASTIC', 'CIVIL', 'CHEMICAL'];
+  var branch = [
+    'Artificial Intelligence & Data Science',
+    'Civil Engineering',
+    'Computer Engineering',
+    'Electrical Engineering',
+    'Electronics Engineering',
+    'Information Technology',
+    'Mechanical Engineering'
+  ];
   Widget bracnchSelection() {
     return Column(
       children: [

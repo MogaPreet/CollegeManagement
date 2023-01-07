@@ -57,7 +57,7 @@ class TeacherModel {
   String? firstName;
   String? lastName;
   List<String>? branch;
-  List<String>? subject;
+  List<String>? years;
   bool? classCoord;
 
   TeacherModel({
@@ -66,7 +66,7 @@ class TeacherModel {
     this.firstName,
     this.lastName,
     this.branch,
-    this.subject,
+    this.years,
     this.classCoord,
   });
 
@@ -79,7 +79,7 @@ class TeacherModel {
       firstName: map['firstName'],
       lastName: map['lastName'],
       branch: toListX(map['branch']),
-      subject: toListX(map['subject']),
+      years: toListX(map['years']),
       classCoord: map['classCoord'],
     );
   }
@@ -91,7 +91,7 @@ class TeacherModel {
       'firstName': firstName,
       'lastName': lastName,
       'branch': branch,
-      'subject': subject,
+      'years': years,
       'classCoord': classCoord,
     };
   }
