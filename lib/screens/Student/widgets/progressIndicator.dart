@@ -13,9 +13,6 @@ class ProgressIndication extends StatefulWidget {
 class _ProgressIndicationState extends State<ProgressIndication> {
   @override
   Widget build(BuildContext context) {
-    return const CircularProgressIndicator.adaptive(
-      backgroundColor: Colors.grey,
-      value: 10,
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 }

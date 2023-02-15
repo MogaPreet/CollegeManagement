@@ -60,7 +60,7 @@ class _TeacherHomeState extends State<TeacherHome> {
   //         return const Text("Loading ...");
   //       });
   // }
-  Widget AppBarText() {
+  Widget appBarText() {
     switch (_currentIndex) {
       case 0:
         return const Text("My Subjects");
@@ -71,7 +71,7 @@ class _TeacherHomeState extends State<TeacherHome> {
     return const Text("Something went Wrong");
   }
 
-  Widget ShowWidget() {
+  Widget showWidget() {
     switch (_currentIndex) {
       case 0:
         return SubjectPage(
@@ -149,9 +149,9 @@ class _TeacherHomeState extends State<TeacherHome> {
             icon: const Icon(Icons.logout),
           )
         ],
-        title: AppBarText(),
+        title: appBarText(),
       ),
-      body: ShowWidget(),
+      body: showWidget(),
     );
   }
 }
@@ -226,6 +226,7 @@ class ShowSubject extends ConsumerStatefulWidget {
 class _ShowSubjectState extends ConsumerState<ShowSubject> {
   TeacherSubjects subject = TeacherSubjects();
   List<String> subjectsAll = [];
+
   List<String> getDetails() {
     FirebaseFirestore.instance
         .collection('teachers')
@@ -245,22 +246,12 @@ class _ShowSubjectState extends ConsumerState<ShowSubject> {
     return subjectsAll;
   }
 
-  final List<Color> cols = [
-    Colors.red.shade50,
-    Colors.blue.shade50,
-    Colors.green.shade50
-  ];
-
-  Color randomGenerator() {
-    return cols[Random().nextInt(3)];
-  }
-
   @override
   Widget build(BuildContext context) {
     final mysubs = getDetails();
 
     int? val = mysubs.length;
-    if (mysubs != null && mysubs.isNotEmpty) {
+    if (mysubs.isNotEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -280,19 +271,34 @@ class _ShowSubjectState extends ConsumerState<ShowSubject> {
             itemCount: val,
             physics: const BouncingScrollPhysics(),
             itemBuilder: (context, index) {
-              return Card(
-                elevation: 6,
-                // color: randomGenerator(),
-                shadowColor: Colors.grey.shade50,
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Center(
-                    child: Text(
-                      subject.subjects![index],
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 14,
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return AssignmentTeacherPage(
+                          teacher: widget.teacher,
+                          subject: subject.subjects?[index],
+                          year: widget.year,
+                        );
+                      },
+                    ),
+                  );
+                },
+                child: Card(
+                  elevation: 6,
+                  shadowColor: Colors.grey.shade50,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Center(
+                      child: Text(
+                        subject.subjects![index],
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ),

@@ -5,13 +5,12 @@ import 'package:cms/screens/Teacher/home.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 import 'dart:typed_data';
-
+import 'package:intl/intl.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart' as p;
 
 final getUrl = StateProvider<String?>((ref) {
   return "";
@@ -19,9 +18,13 @@ final getUrl = StateProvider<String?>((ref) {
 
 class AssignmentTeacherPage extends ConsumerStatefulWidget {
   final TeacherModel teacher;
-  final String subject;
+  final String? subject;
+  final String year;
   const AssignmentTeacherPage(
-      {super.key, required this.teacher, required this.subject});
+      {super.key,
+      required this.teacher,
+      required this.subject,
+      required this.year});
 
   @override
   ConsumerState<AssignmentTeacherPage> createState() =>
@@ -37,12 +40,13 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
   final assignmentTitleController = TextEditingController();
   final assignDescController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  DateTime currentDate = DateTime.now();
+  DateTime? currentDate;
+  bool isLoading = false;
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
         context: context,
-        initialDate: currentDate,
-        firstDate: DateTime(2015),
+        initialDate: currentDate ?? DateTime.now(),
+        firstDate: DateTime.now(),
         lastDate: DateTime(2050));
     if (pickedDate != null && pickedDate != currentDate) {
       setState(() {
@@ -66,18 +70,22 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
     final destination = 'files/${assignmentTitleController.text}';
 
     task = FirebaseApi.uploadFile(destination, file!);
+
     setState(() {});
 
     if (task == null) return;
 
     final snapshot = await task!.whenComplete(() {
-      print("Successfully uploaded");
+      showDialog(
+          context: context,
+          builder: (context) {
+            return Material(child: buildUploadStatus(task!));
+          });
     });
     final urlDownload = await snapshot.ref.getDownloadURL();
     setState(() {
       url = urlDownload;
     });
-    print('Download-Link: $urlDownload');
   }
 
   Widget buildUploadStatus(UploadTask task) => StreamBuilder<TaskSnapshot>(
@@ -88,17 +96,77 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
             final progress = snap.bytesTransferred / snap.totalBytes;
             final percentage = (progress * 100).toStringAsFixed(2);
 
-            return Text(
-              '$percentage %',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            return Center(
+              child: Text(
+                '$percentage %',
+                style:
+                    const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+              ),
             );
           } else {
             return Container();
           }
         },
       );
+  Widget assignmentImage() {
+    return Center(
+      child: Stack(
+        children: <Widget>[
+          InkWell(
+            onTap: () async {
+              if (file != null && file!.path.isNotEmpty) {
+                setState(() {});
+              }
+            },
+            child: Container(
+              width: double.infinity,
+              height: 200.0,
+              decoration:
+                  BoxDecoration(border: Border.all(color: Colors.black)),
+              child: file != null &&
+                          file!.path.isNotEmpty &&
+                          p.extension(file!.path).contains('.jpeg') ||
+                      p.extension(file!.path).contains('.png') ||
+                      p.extension(file!.path).contains('.jpg')
+                  ? Image.file(
+                      File(file!.path),
+                      fit: BoxFit.cover,
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.file_copy_outlined),
+                        Text(p.basename(file!.path))
+                      ],
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final dateSelectionButton = Material(
+      elevation: 5,
+      borderRadius: BorderRadius.circular(5),
+      color: Colors.black,
+      child: MaterialButton(
+        padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+        minWidth: MediaQuery.of(context).size.width,
+        onPressed: () {
+          _selectDate(context);
+        },
+        child: Text(
+          currentDate != null
+              ? DateFormat('MMM d,yyyy').format(currentDate ?? DateTime.now())
+              : "Select Last Date",
+          style: const TextStyle(fontSize: 15.0, color: Colors.white),
+        ),
+      ),
+    );
     final assignTitle = TextFormField(
       controller: assignmentTitleController,
       validator: (value) {
@@ -132,6 +200,13 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
       controller: assignDescController,
       minLines: 1,
       maxLines: 10,
+      validator: (value) {
+        if (value != null && value.isEmpty) {
+          return "Assignment Descreiption is Required";
+        } else {
+          return null;
+        }
+      },
       onSaved: (value) {
         assignDescController.text = value ?? "";
       },
@@ -153,19 +228,30 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
         hintText: "Assignment Description",
       ),
     );
-    final selectFileButton = TextButton(
-      onPressed: () {
-        selectFile();
-      },
-      child: const Text("Select File "),
+    final selectFileButton = Material(
+      elevation: 5,
+      borderRadius: BorderRadius.circular(5),
+      color: Colors.black,
+      child: MaterialButton(
+        padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+        minWidth: MediaQuery.of(context).size.width,
+        onPressed: () {
+          selectFile();
+        },
+        child: const Text(
+          "Select file",
+          style: TextStyle(fontSize: 15.0, color: Colors.white),
+        ),
+      ),
     );
+
     void addAssignment() async {
       final isValid = _formKey.currentState!.validate();
-      var date = DateTime.now().toString();
-
-      var dateparse = DateTime.parse(date);
-      await uploadFile();
-      if (isValid) {
+      if (isValid && currentDate != null) {
+        setState(() {
+          isLoading = true;
+        });
+        await uploadFile();
         _formKey.currentState!.save();
         try {
           // final id = uuid.v4();
@@ -186,6 +272,9 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
               .set(assignment.toMap());
 
           if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+                  "Successfully Added ${assignmentTitleController.text}")));
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => const TeacherHome()),
@@ -193,9 +282,9 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
         } catch (error) {
           print('error occured ${error}');
         } finally {
-          // setState(() {
-          //   _isLoading = false;
-          // });
+          setState(() {
+            isLoading = false;
+          });
         }
       }
     }
@@ -221,7 +310,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          widget.subject,
+                          widget.subject ?? "",
                         ),
                         assignTitle,
                         const SizedBox(
@@ -231,12 +320,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
                         const SizedBox(
                           height: 20,
                         ),
-                        TextButton(
-                            onPressed: () {
-                              _selectDate(context);
-                            },
-                            child:
-                                const Text("Select Last Date for assignment")),
+                        dateSelectionButton,
                         const SizedBox(
                           height: 20,
                         ),
@@ -244,11 +328,25 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
                         const SizedBox(
                           height: 20,
                         ),
+                        if (file != null) assignmentImage(),
+                        const SizedBox(
+                          height: 20,
+                        ),
                         TextButton(
-                            onPressed: () {
+                            style: ButtonStyle(
+                              foregroundColor:
+                                  MaterialStateProperty.all(Colors.white),
+                              backgroundColor:
+                                  MaterialStateProperty.all(Colors.black),
+                            ),
+                            onPressed: () async {
                               addAssignment();
                             },
-                            child: const Text("Add Assignment"))
+                            child: isLoading
+                                ? const CircularProgressIndicator()
+                                : const Text(
+                                    "Add Assignment",
+                                  ))
                       ],
                     )
                   ],
