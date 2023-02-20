@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/assignment.dart';
 import 'package:cms/models/user.dart';
 import 'package:cms/screens/Teacher/home.dart';
+import 'package:cms/screens/teacher_signup.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -15,10 +16,14 @@ import 'package:path/path.dart' as p;
 final getUrl = StateProvider<String?>((ref) {
   return "";
 });
+final selectBranchForAssignment = StateProvider<String>((ref) {
+  return "";
+});
 
 class AssignmentTeacherPage extends ConsumerStatefulWidget {
   final TeacherModel teacher;
   final String? subject;
+
   final String year;
   const AssignmentTeacherPage(
       {super.key,
@@ -42,6 +47,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   DateTime? currentDate;
   bool isLoading = false;
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
         context: context,
@@ -147,6 +153,58 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
     );
   }
 
+  Widget branchSelection() {
+    return Column(
+      children: [
+        const Text("Select Branch"),
+        const SizedBox(
+          height: 10,
+        ),
+        DecoratedBox(
+          decoration: BoxDecoration(
+              color: Colors.black, borderRadius: BorderRadius.circular(8)),
+          child: Padding(
+            padding: const EdgeInsets.only(left: 15, right: 15),
+            child: DropdownButton(
+              // Initial Value
+              value: widget.teacher.branch![0],
+              disabledHint: const Text("Select Branch"),
+              style: const TextStyle(color: Colors.white),
+              underline: Container(),
+              borderRadius: BorderRadius.circular(2),
+              isExpanded: true,
+              dropdownColor: Colors.black,
+              // Down Arrow Icon
+
+              icon: const Icon(
+                Icons.keyboard_arrow_down,
+                color: Colors.white,
+              ),
+
+              // Array list of items
+              items: widget.teacher.branch!.map((String branch) {
+                return DropdownMenuItem(
+                  value: branch,
+                  child: Text(branch),
+                );
+              }).toList(),
+              // After selecting the desired option,it will
+
+              onChanged: (String? newValue) {
+                setState(() {
+                  ref
+                      .watch(selectBranchForAssignment.notifier)
+                      .update((state) => newValue!);
+                });
+              },
+              hint: const Text("select college"),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final dateSelectionButton = Material(
@@ -246,6 +304,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
     );
 
     void addAssignment() async {
+      final currentBranch = ref.watch(selectBranchForAssignment);
       final isValid = _formKey.currentState!.validate();
       if (isValid && currentDate != null) {
         setState(() {
@@ -264,7 +323,8 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
           assignment.subject = widget.subject;
           assignment.assignedDate = DateTime.now();
           assignment.lastDate = currentDate;
-          assignment.toBranch = widget.teacher.branch.toString();
+          assignment.toBranch = currentBranch;
+          assignment.year = widget.year;
 
           await FirebaseFirestore.instance
               .collection('assignemnts')
@@ -291,6 +351,11 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
 
     return SafeArea(
       child: Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          backgroundColor: Colors.black,
+          title: const Text("Assignment"),
+        ),
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
           child: NotificationListener<OverscrollIndicatorNotification>(
@@ -312,6 +377,9 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
                         Text(
                           widget.subject ?? "",
                         ),
+                        const SizedBox(
+                          height: 10,
+                        ),
                         assignTitle,
                         const SizedBox(
                           height: 20,
@@ -324,14 +392,18 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
                         const SizedBox(
                           height: 20,
                         ),
+                        branchSelection(),
+                        const SizedBox(
+                          height: 20,
+                        ),
                         selectFileButton,
                         const SizedBox(
                           height: 20,
                         ),
                         if (file != null) assignmentImage(),
-                        const SizedBox(
-                          height: 20,
-                        ),
+                        // const SizedBox(
+                        //   height: 20,
+                        // ),
                         TextButton(
                             style: ButtonStyle(
                               foregroundColor:

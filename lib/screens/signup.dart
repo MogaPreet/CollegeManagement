@@ -165,7 +165,7 @@ class _registrationState extends ConsumerState<registration> {
             child: DropdownButton(
               // Initial Value
               value: dropdownvalue,
-              disabledHint: const Text("Choose Collge"),
+              disabledHint: const Text("Select Branch"),
               style: const TextStyle(color: Colors.white),
               underline: Container(),
               borderRadius: BorderRadius.circular(2),
@@ -192,7 +192,7 @@ class _registrationState extends ConsumerState<registration> {
                   dropdownvalue = newValue!;
                 });
               },
-              hint: const Text("Select College"),
+              hint: const Text("select college"),
             ),
           ),
         ),

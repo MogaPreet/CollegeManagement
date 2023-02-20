@@ -3,6 +3,7 @@ class AssignMentModel {
   String? url;
   String? title;
   String? desc;
+  String? year;
   String? toBranch;
   DateTime? assignedDate;
   List<String>? assignedTo;
@@ -13,6 +14,7 @@ class AssignMentModel {
     this.id,
     this.url,
     this.title,
+    this.year,
     this.desc,
     this.toBranch,
     this.assignedDate,
@@ -26,6 +28,7 @@ class AssignMentModel {
       id: map['id'],
       url: map['url'],
       title: map['title'],
+      year: map['year'],
       desc: map['desc'],
       toBranch: map['toBranch'],
       assignedDate: map['assignedDate'],
@@ -40,6 +43,7 @@ class AssignMentModel {
       'id': id,
       'url': url,
       'title': title,
+      'year': year,
       'desc': desc,
       'toBranch': toBranch,
       'assignedDate': assignedDate,
