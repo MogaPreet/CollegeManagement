@@ -88,16 +88,17 @@ class _NoticeState extends ConsumerState<Notice> {
           Icons.description_outlined,
           color: Colors.black,
         ),
-        hintText: "Event Description",
+        hintText: "notice Description",
       ),
     );
     List<String> branch = [
-      'COMPS',
-      'IT',
-      'EXTC',
-      'PLASTIC',
-      'CIVIL',
-      'CHEMICAL'
+      'Artificial Intelligence & Data Science',
+      'Civil Engineering',
+      'Computer Engineering',
+      'Electrical Engineering',
+      'Electronics Engineering',
+      'Information Technology',
+      'Mechanical Engineering'
     ];
     List<String> currentb = widget.notifier.branch ?? [];
     List<String>? sendNoticeTo() {

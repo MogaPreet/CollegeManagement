@@ -120,9 +120,9 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
         children: <Widget>[
           InkWell(
             onTap: () async {
-              if (file != null && file!.path.isNotEmpty) {
-                setState(() {});
-              }
+              setState(() {
+                file = null;
+              });
             },
             child: Container(
               width: double.infinity,
@@ -167,7 +167,9 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
             padding: const EdgeInsets.only(left: 15, right: 15),
             child: DropdownButton(
               // Initial Value
-              value: widget.teacher.branch![0],
+              value: ref.read(selectBranchForAssignment).isNotEmpty
+                  ? ref.read(selectBranchForAssignment)
+                  : widget.teacher.branch![0],
               disabledHint: const Text("Select Branch"),
               style: const TextStyle(color: Colors.white),
               underline: Container(),
@@ -400,10 +402,19 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
                         const SizedBox(
                           height: 20,
                         ),
-                        if (file != null) assignmentImage(),
-                        // const SizedBox(
-                        //   height: 20,
-                        // ),
+                        if (file != null && file!.path.isNotEmpty)
+                          Column(
+                            children: [
+                              InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      file = null;
+                                    });
+                                  },
+                                  child: Text("remove")),
+                              assignmentImage(),
+                            ],
+                          ),
                         TextButton(
                             style: ButtonStyle(
                               foregroundColor:

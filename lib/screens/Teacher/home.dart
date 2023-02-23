@@ -92,7 +92,7 @@ class _TeacherHomeState extends State<TeacherHome> {
         showElevation: true,
         itemCornerRadius: 24,
         curve: Curves.easeIn,
-        backgroundColor: Colors.white30,
+        backgroundColor: Colors.black,
         onItemSelected: (index) {
           if (mounted) setState(() => _currentIndex = index);
         },

@@ -48,7 +48,7 @@ class _StudNoticeState extends ConsumerState<StudNotice> {
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Column(
-              children: [const Center(child: CupertinoActivityIndicator())],
+              children: [Center(child: CupertinoActivityIndicator())],
             );
           }
           final dres = snapshot.data!.docs.map((e) => e.data());
@@ -56,21 +56,27 @@ class _StudNoticeState extends ConsumerState<StudNotice> {
           var len = snapshot.data?.docs.length ?? 909;
 
           print("Length $len");
-
+          final today = DateTime.now();
           return Column(
             children: [
               ListView.builder(
                   scrollDirection: Axis.vertical,
                   shrinkWrap: true,
-                  physics: BouncingScrollPhysics(),
+                  physics: const BouncingScrollPhysics(),
                   itemCount: len,
                   itemBuilder: (context, index) {
                     final DocumentSnapshot documentSnapshot =
                         snapshot.data!.docs[index];
+
                     return ListTile(
-                      leading: Icon(Icons.newspaper),
+                      leading: documentSnapshot["createdAt"]
+                                  .toString()
+                                  .substring(0, 10) ==
+                              today.toString().substring(0, 10)
+                          ? const Icon(Icons.fiber_new_sharp)
+                          : const Icon(Icons.newspaper),
                       title: Text(documentSnapshot["title"]),
-                      trailing: Icon(Icons.arrow_circle_right_sharp),
+                      trailing: const Icon(Icons.arrow_circle_right_sharp),
                     );
                   }),
               if (len >= 3)
