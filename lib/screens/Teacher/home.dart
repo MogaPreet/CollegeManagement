@@ -200,7 +200,7 @@ class SubjectPage extends StatelessWidget {
                   ),
                 ],
               )
-            : const Center(child: ProgressIndication()),
+            : const Center(child: CircularProgressIndicator()),
       ),
     );
   }
@@ -251,76 +251,74 @@ class _ShowSubjectState extends ConsumerState<ShowSubject> {
     final mysubs = getDetails();
 
     int? val = mysubs.length;
-    if (mysubs.isNotEmpty) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 12),
-            child: Text(
-              widget.year,
-              style: TextStyle(
-                color: Colors.grey.shade900,
-                fontWeight: FontWeight.w800,
-                fontSize: 18,
-              ),
+    Widget gridWidget = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 12),
+          child: Text(
+            widget.year,
+            style: TextStyle(
+              color: Colors.grey.shade900,
+              fontWeight: FontWeight.w800,
+              fontSize: 18,
             ),
           ),
-          GridView.builder(
-            shrinkWrap: true,
-            itemCount: val,
-            physics: const BouncingScrollPhysics(),
-            itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return AssignmentTeacherPage(
-                          teacher: widget.teacher,
-                          subject: subject.subjects?[index],
-                          year: widget.year,
-                        );
-                      },
-                    ),
-                  );
-                },
-                child: Card(
-                  elevation: 6,
-                  shadowColor: Colors.grey.shade50,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Center(
-                      child: Text(
-                        subject.subjects![index],
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 14,
-                        ),
+        ),
+        GridView.builder(
+          shrinkWrap: true,
+          itemCount: val,
+          physics: const BouncingScrollPhysics(),
+          itemBuilder: (context, index) {
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return AssignmentTeacherPage(
+                        teacher: widget.teacher,
+                        subject: subject.subjects?[index],
+                        year: widget.year,
+                      );
+                    },
+                  ),
+                );
+              },
+              child: Card(
+                elevation: 6,
+                shadowColor: Colors.grey.shade50,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Center(
+                    child: Text(
+                      subject.subjects![index],
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 14,
                       ),
                     ),
                   ),
                 ),
-              );
-            },
-            padding: const EdgeInsets.all(8),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 2,
-              childAspectRatio: 1.5,
-              mainAxisSpacing: 2,
-            ),
+              ),
+            );
+          },
+          padding: const EdgeInsets.all(8),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 2,
+            childAspectRatio: 1.5,
+            mainAxisSpacing: 2,
           ),
-        ],
-      );
-    }
-    return Column(
-      children: [
-        const ProgressIndication(),
-        TextButton(onPressed: () {}, child: const Text("Loading..."))
+        ),
       ],
+    );
+    if (mysubs.isNotEmpty) {
+      return gridWidget;
+    }
+    return ProgressIndication(
+      child: gridWidget,
     );
   }
 }

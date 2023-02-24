@@ -48,7 +48,7 @@ class _StudNoticeState extends ConsumerState<StudNotice> {
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Column(
-              children: [Center(child: CupertinoActivityIndicator())],
+              children: const [Center(child: CupertinoActivityIndicator())],
             );
           }
           final dres = snapshot.data!.docs.map((e) => e.data());

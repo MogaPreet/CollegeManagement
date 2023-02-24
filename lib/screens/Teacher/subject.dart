@@ -96,33 +96,35 @@ class _SubjectYearState extends ConsumerState<SubjectYear> {
         .map((subject) => MultiSelectItem<String>(subject, subject))
         .toList();
     List<String> selectedSubject = [];
-
-    if (items.isNotEmpty) {
-      return MultiSelectBottomSheetField(
-        initialChildSize: 0.4,
-        listType: MultiSelectListType.CHIP,
-        searchable: true,
-        buttonText: const Text("Select Subjects"),
-        title: const Text("Subjects"),
-        items: items,
-        onConfirm: (values) {
-          selectedSubject = values.cast();
-          ref
-              .watch(widget.selectedYear.notifier)
-              .update((state) => selectedSubject);
+    Widget mulBottom = MultiSelectBottomSheetField(
+      initialChildSize: 0.4,
+      listType: MultiSelectListType.CHIP,
+      searchable: true,
+      buttonText: const Text("Select Subjects"),
+      title: const Text("Subjects"),
+      items: items,
+      onConfirm: (values) {
+        selectedSubject = values.cast();
+        ref
+            .watch(widget.selectedYear.notifier)
+            .update((state) => selectedSubject);
+      },
+      chipDisplay: MultiSelectChipDisplay(
+        onTap: (value) {
+          // setState(() {
+          //   selectedSubject.remove(value);
+          //   ref
+          //       .watch(widget.selectedYear.notifier)
+          //       .update((state) => selectedSubject);
+          // });
         },
-        chipDisplay: MultiSelectChipDisplay(
-          onTap: (value) {
-            // setState(() {
-            //   selectedSubject.remove(value);
-            //   ref
-            //       .watch(widget.selectedYear.notifier)
-            //       .update((state) => selectedSubject);
-            // });
-          },
-        ),
-      );
+      ),
+    );
+    if (items.isNotEmpty) {
+      return mulBottom;
     }
-    return const Center(child: ProgressIndication());
+    return ProgressIndication(
+      child: mulBottom,
+    );
   }
 }
