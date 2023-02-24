@@ -67,11 +67,15 @@ class _StudentCardState extends State<StudentCard> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                            widget.student.branch ?? "",
-                            style: const TextStyle(
-                              fontSize: 20,
-                              color: darkColor,
+                          const Padding(
+                            padding: EdgeInsets.only(left: 5),
+                            child: Text(
+                              "Edit Profile",
+                              style: TextStyle(
+                                fontSize: 12,
+                                decoration: TextDecoration.underline,
+                                color: Color.fromARGB(255, 37, 122, 190),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 8)
@@ -89,18 +93,37 @@ class _StudentCardState extends State<StudentCard> {
               vertical: 30,
             ),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      "Roll No: \n Email: ",
-                      style: montserrat,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          "Roll No :",
+                          style: montserrat,
+                        ),
+                        Text(
+                          "Email :",
+                          style: montserrat,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      "Current Year: \n Branch: ",
-                      style: montserrat,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          "Current Year :",
+                          style: montserrat,
+                        ),
+                        Text(
+                          "Branch :",
+                          style: montserrat,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -118,74 +141,6 @@ class _StudentCardState extends State<StudentCard> {
               ],
             ),
           ),
-          // const SizedBox(height: 40),
-          // Padding(
-          //   padding:
-          //       const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
-          //   child: Row(
-          //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          //     crossAxisAlignment: CrossAxisAlignment.center,
-          //     children: [
-          //       Column(
-          //         children: [
-          //           Text(
-          //             "6280",
-          //             style: buildMontserrat(
-          //               const Color(0xFF000000),
-          //               fontWeight: FontWeight.bold,
-          //             ),
-          //           ),
-          //           Text(
-          //             "Subscribers",
-          //             style: buildMontserrat(darkColor),
-          //           )
-          //         ],
-          //       ),
-          //       SizedBox(
-          //         height: 50,
-          //         child: const VerticalDivider(
-          //           color: Color(0xFF9A9A9A),
-          //         ),
-          //       ),
-          //       Column(
-          //         children: [
-          //           Text(
-          //             "1745",
-          //             style: buildMontserrat(
-          //               const Color(0xFF000000),
-          //               fontWeight: FontWeight.bold,
-          //             ),
-          //           ),
-          //           Text(
-          //             "Followers",
-          //             style: buildMontserrat(darkColor),
-          //           )
-          //         ],
-          //       ),
-          //       SizedBox(
-          //         height: 50,
-          //         child: const VerticalDivider(
-          //           color: Color(0xFF9A9A9A),
-          //         ),
-          //       ),
-          //       Column(
-          //         children: [
-          //           Text(
-          //             "163",
-          //             style: buildMontserrat(
-          //               const Color(0xFF000000),
-          //               fontWeight: FontWeight.bold,
-          //             ),
-          //           ),
-          //           Text(
-          //             "Videos",
-          //             style: buildMontserrat(darkColor),
-          //           )
-          //         ],
-          //       ),
-          //     ],
-          //   ),
-          // ),
           const SizedBox(height: 8)
         ],
       ),

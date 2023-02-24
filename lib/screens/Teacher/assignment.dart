@@ -154,56 +154,49 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
   }
 
   Widget branchSelection() {
-    return Column(
-      children: [
-        const Text("Select Branch"),
-        const SizedBox(
-          height: 10,
-        ),
-        DecoratedBox(
-          decoration: BoxDecoration(
-              color: Colors.black, borderRadius: BorderRadius.circular(8)),
-          child: Padding(
-            padding: const EdgeInsets.only(left: 15, right: 15),
-            child: DropdownButton(
-              // Initial Value
-              value: ref.read(selectBranchForAssignment).isNotEmpty
-                  ? ref.read(selectBranchForAssignment)
-                  : widget.teacher.branch![0],
-              disabledHint: const Text("Select Branch"),
-              style: const TextStyle(color: Colors.white),
-              underline: Container(),
-              borderRadius: BorderRadius.circular(2),
-              isExpanded: true,
-              dropdownColor: Colors.black,
-              // Down Arrow Icon
+    return DecoratedBox(
+      decoration: BoxDecoration(
+          color: Colors.black, borderRadius: BorderRadius.circular(8)),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 15, right: 15),
+        child: DropdownButton(
+          // Initial Value
+          value: ref.read(selectBranchForAssignment).isNotEmpty
+              ? ref.read(selectBranchForAssignment)
+              : widget.teacher.branch![0],
+          disabledHint: const Text("Select Branch"),
+          style: const TextStyle(color: Colors.white),
 
-              icon: const Icon(
-                Icons.keyboard_arrow_down,
-                color: Colors.white,
-              ),
+          borderRadius: BorderRadius.circular(2),
 
-              // Array list of items
-              items: widget.teacher.branch!.map((String branch) {
-                return DropdownMenuItem(
-                  value: branch,
-                  child: Text(branch),
-                );
-              }).toList(),
-              // After selecting the desired option,it will
+          isExpanded: true,
+          dropdownColor: Colors.black,
+          // Down Arrow Icon
 
-              onChanged: (String? newValue) {
-                setState(() {
-                  ref
-                      .watch(selectBranchForAssignment.notifier)
-                      .update((state) => newValue!);
-                });
-              },
-              hint: const Text("select college"),
-            ),
+          icon: const Icon(
+            Icons.keyboard_arrow_down,
+            color: Colors.white,
           ),
+
+          // Array list of items
+          items: widget.teacher.branch!.map((String branch) {
+            return DropdownMenuItem(
+              value: branch,
+              child: Text(branch),
+            );
+          }).toList(),
+          // After selecting the desired option,it will
+
+          onChanged: (String? newValue) {
+            setState(() {
+              ref
+                  .watch(selectBranchForAssignment.notifier)
+                  .update((state) => newValue!);
+            });
+          },
+          hint: const Text("select college"),
         ),
-      ],
+      ),
     );
   }
 
@@ -378,6 +371,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
                       children: [
                         Text(
                           widget.subject ?? "",
+                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(
                           height: 10,
@@ -394,7 +388,10 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
                         const SizedBox(
                           height: 20,
                         ),
-                        branchSelection(),
+                        widget.teacher.branch!.length == 1
+                            ? Text(
+                                widget.teacher.branch!.map((e) => e).toString())
+                            : branchSelection(),
                         const SizedBox(
                           height: 20,
                         ),
