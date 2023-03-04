@@ -310,7 +310,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
         try {
           // final id = uuid.v4();
           AssignMentModel assignment = AssignMentModel();
-          assignment.id = 1;
+          assignment.id = widget.teacher.uid;
           assignment.desc = assignDescController.text;
           assignment.title = assignmentTitleController.text;
           assignment.assignedBy = widget.teacher.firstName;

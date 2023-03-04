@@ -1,5 +1,5 @@
 class AssignMentModel {
-  int? id;
+  String? id;
   String? url;
   String? title;
   String? desc;

@@ -10,6 +10,7 @@ import 'package:cms/screens/Student/widgets/progressIndicator.dart';
 import 'package:cms/screens/Teacher/assignment.dart';
 import 'package:cms/screens/Teacher/fetch_student.dart';
 import 'package:cms/screens/Teacher/notice.dart';
+import 'package:cms/screens/Teacher/show_assignment.dart';
 import 'package:cms/screens/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -66,6 +67,8 @@ class _TeacherHomeState extends State<TeacherHome> {
         return const Text("My Subjects");
       case 1:
         return const Text("My Students");
+      case 2:
+        return const Text("My Assignments");
       default:
     }
     return const Text("Something went Wrong");
@@ -80,6 +83,8 @@ class _TeacherHomeState extends State<TeacherHome> {
 
       case 1:
         return FetchStudent(myBranch: loggedInUser.branch ?? []);
+      case 2:
+        return ShowAssignment(userId: loggedInUser.uid ?? "");
     }
     return SubjectPage(loggedInUser: loggedInUser);
   }

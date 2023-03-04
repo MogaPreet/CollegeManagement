@@ -1,10 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cms/models/user.dart';
 import 'package:cms/screens/Student/studentHome.dart';
-import 'package:cms/screens/Student/widgets/StudentCard.dart';
 import 'package:cms/screens/Teacher/home.dart';
 import 'package:cms/screens/login.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

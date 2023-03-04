@@ -1,7 +1,5 @@
 import 'package:cms/screens/signup.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,7 +15,7 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(),
       body: Column(
         children: [
-          Text("Hi"),
+          const Text("Hi"),
           TextButton(
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {

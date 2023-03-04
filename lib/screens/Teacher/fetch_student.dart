@@ -60,9 +60,10 @@ class _FetchStudentState extends ConsumerState<FetchStudent> {
                           final DocumentSnapshot documentSnapshot =
                               snapshot.data!.docs[index];
                           return ListTile(
-                            leading: Icon(Icons.person_rounded),
+                            leading: const Icon(Icons.person_rounded),
                             title: Text(documentSnapshot["firstName"]),
-                            trailing: Icon(Icons.arrow_circle_right_sharp),
+                            trailing:
+                                const Icon(Icons.arrow_circle_right_sharp),
                           );
                         }),
                     // if (len >= 3)
