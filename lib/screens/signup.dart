@@ -38,7 +38,8 @@ class ForDse extends ConsumerWidget {
         ),
         DecoratedBox(
           decoration: BoxDecoration(
-              color: Colors.black, borderRadius: BorderRadius.circular(8)),
+              color: Color.fromARGB(255, 37, 37, 37),
+              borderRadius: BorderRadius.circular(8)),
           child: Padding(
             padding: const EdgeInsets.only(left: 15, right: 15),
             child: DropdownButton(
@@ -49,7 +50,7 @@ class ForDse extends ConsumerWidget {
               underline: Container(),
               borderRadius: BorderRadius.circular(2),
               isExpanded: true,
-              dropdownColor: Colors.black,
+              dropdownColor: Color.fromARGB(255, 37, 37, 37),
               // Down Arrow Icon
 
               icon: const Icon(
@@ -159,7 +160,8 @@ class _registrationState extends ConsumerState<registration> {
         ),
         DecoratedBox(
           decoration: BoxDecoration(
-              color: Colors.black, borderRadius: BorderRadius.circular(8)),
+              color: Color.fromARGB(255, 37, 37, 37),
+              borderRadius: BorderRadius.circular(8)),
           child: Padding(
             padding: const EdgeInsets.only(left: 15, right: 15),
             child: DropdownButton(
@@ -170,7 +172,7 @@ class _registrationState extends ConsumerState<registration> {
               underline: Container(),
               borderRadius: BorderRadius.circular(2),
               isExpanded: true,
-              dropdownColor: Colors.black,
+              dropdownColor: Color.fromARGB(255, 37, 37, 37),
               // Down Arrow Icon
 
               icon: const Icon(
@@ -388,7 +390,7 @@ class _registrationState extends ConsumerState<registration> {
           "Let's Know About You!",
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Color.fromARGB(255, 37, 37, 37),
           ),
         ),
         scrolledUnderElevation: .1,

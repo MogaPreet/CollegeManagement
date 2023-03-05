@@ -45,16 +45,17 @@ class _NoticeState extends ConsumerState<Notice> {
       decoration: InputDecoration(
         border: const OutlineInputBorder(
           borderSide: BorderSide(
-            color: Colors.black,
+            color: Color.fromARGB(255, 37, 37, 37),
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(width: 2, color: Colors.black),
+          borderSide: const BorderSide(
+              width: 2, color: Color.fromARGB(255, 37, 37, 37)),
           borderRadius: BorderRadius.circular(5.0),
         ),
         prefixIcon: const Icon(
           Icons.event_available_outlined,
-          color: Colors.black,
+          color: Color.fromARGB(255, 37, 37, 37),
         ),
         hintText: "Notice title",
       ),
@@ -77,16 +78,17 @@ class _NoticeState extends ConsumerState<Notice> {
       decoration: InputDecoration(
         border: const OutlineInputBorder(
           borderSide: BorderSide(
-            color: Colors.black,
+            color: Color.fromARGB(255, 37, 37, 37),
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(width: 2, color: Colors.black),
+          borderSide: const BorderSide(
+              width: 2, color: Color.fromARGB(255, 37, 37, 37)),
           borderRadius: BorderRadius.circular(5.0),
         ),
         prefixIcon: const Icon(
           Icons.description_outlined,
-          color: Colors.black,
+          color: Color.fromARGB(255, 37, 37, 37),
         ),
         hintText: "notice Description",
       ),

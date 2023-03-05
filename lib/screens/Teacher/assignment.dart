@@ -127,8 +127,8 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
             child: Container(
               width: double.infinity,
               height: 200.0,
-              decoration:
-                  BoxDecoration(border: Border.all(color: Colors.black)),
+              decoration: BoxDecoration(
+                  border: Border.all(color: Color.fromARGB(255, 37, 37, 37))),
               child: file != null &&
                           file!.path.isNotEmpty &&
                           p.extension(file!.path).contains('.jpeg') ||
@@ -156,7 +156,8 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
   Widget branchSelection() {
     return DecoratedBox(
       decoration: BoxDecoration(
-          color: Colors.black, borderRadius: BorderRadius.circular(8)),
+          color: Color.fromARGB(255, 37, 37, 37),
+          borderRadius: BorderRadius.circular(8)),
       child: Padding(
         padding: const EdgeInsets.only(left: 15, right: 15),
         child: DropdownButton(
@@ -170,7 +171,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
           borderRadius: BorderRadius.circular(2),
 
           isExpanded: true,
-          dropdownColor: Colors.black,
+          dropdownColor: Color.fromARGB(255, 37, 37, 37),
           // Down Arrow Icon
 
           icon: const Icon(
@@ -205,7 +206,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
     final dateSelectionButton = Material(
       elevation: 5,
       borderRadius: BorderRadius.circular(5),
-      color: Colors.black,
+      color: Color.fromARGB(255, 37, 37, 37),
       child: MaterialButton(
         padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
         minWidth: MediaQuery.of(context).size.width,
@@ -235,16 +236,17 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
       decoration: InputDecoration(
         border: const OutlineInputBorder(
           borderSide: BorderSide(
-            color: Colors.black,
+            color: Color.fromARGB(255, 37, 37, 37),
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(width: 2, color: Colors.black),
+          borderSide: const BorderSide(
+              width: 2, color: Color.fromARGB(255, 37, 37, 37)),
           borderRadius: BorderRadius.circular(5.0),
         ),
         prefixIcon: const Icon(
           Icons.event_available_outlined,
-          color: Colors.black,
+          color: Color.fromARGB(255, 37, 37, 37),
         ),
         hintText: "Assignment title",
       ),
@@ -267,16 +269,17 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
       decoration: InputDecoration(
         border: const OutlineInputBorder(
           borderSide: BorderSide(
-            color: Colors.black,
+            color: Color.fromARGB(255, 37, 37, 37),
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(width: 2, color: Colors.black),
+          borderSide: const BorderSide(
+              width: 2, color: Color.fromARGB(255, 37, 37, 37)),
           borderRadius: BorderRadius.circular(5.0),
         ),
         prefixIcon: const Icon(
           Icons.description_outlined,
-          color: Colors.black,
+          color: Color.fromARGB(255, 37, 37, 37),
         ),
         hintText: "Assignment Description",
       ),
@@ -284,7 +287,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
     final selectFileButton = Material(
       elevation: 5,
       borderRadius: BorderRadius.circular(5),
-      color: Colors.black,
+      color: Color.fromARGB(255, 37, 37, 37),
       child: MaterialButton(
         padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
         minWidth: MediaQuery.of(context).size.width,
@@ -348,7 +351,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
       child: Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          backgroundColor: Colors.black,
+          backgroundColor: Color.fromARGB(255, 37, 37, 37),
           title: const Text("Assignment"),
         ),
         body: Padding(
@@ -416,8 +419,8 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
                             style: ButtonStyle(
                               foregroundColor:
                                   MaterialStateProperty.all(Colors.white),
-                              backgroundColor:
-                                  MaterialStateProperty.all(Colors.black),
+                              backgroundColor: MaterialStateProperty.all(
+                                  Color.fromARGB(255, 37, 37, 37)),
                             ),
                             onPressed: () async {
                               addAssignment();

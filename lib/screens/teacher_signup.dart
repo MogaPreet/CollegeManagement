@@ -318,7 +318,7 @@ class _TeacherSignupState extends ConsumerState<TeacherSignup> {
           "Let's Know About You!",
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Color.fromARGB(255, 37, 37, 37),
           ),
         ),
         scrolledUnderElevation: .1,
@@ -544,7 +544,7 @@ class _SubjectSelState extends ConsumerState<SubjectSel> {
     final myBranches = ref.watch(selectedBranchs);
     return Container(
       decoration: BoxDecoration(
-        color: Colors.black45,
+        color: Color.fromARGB(255, 37, 37, 37),
         border: Border.all(
           color: Colors.white38,
           width: 2,
@@ -584,7 +584,7 @@ class _SubjectSelState extends ConsumerState<SubjectSel> {
                             TextButton(
                                 style: ButtonStyle(
                                   backgroundColor: MaterialStateProperty.all(
-                                    Colors.black45,
+                                    Color.fromARGB(255, 37, 37, 37),
                                   ),
                                   foregroundColor:
                                       MaterialStateProperty.all(Colors.white),
@@ -621,7 +621,7 @@ class _SubjectSelState extends ConsumerState<SubjectSel> {
                   alignment: Alignment.centerLeft,
                   child: const Text(
                     "",
-                    style: TextStyle(color: Colors.black54),
+                    style: TextStyle(color: Color.fromARGB(255, 37, 37, 37)),
                   ))
               : Padding(
                   padding: const EdgeInsets.all(8.0),

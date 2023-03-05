@@ -97,7 +97,7 @@ class _TeacherHomeState extends State<TeacherHome> {
         showElevation: true,
         itemCornerRadius: 24,
         curve: Curves.easeIn,
-        backgroundColor: Colors.black,
+        backgroundColor: Color.fromARGB(255, 37, 37, 37),
         onItemSelected: (index) {
           if (mounted) setState(() => _currentIndex = index);
         },
@@ -105,32 +105,31 @@ class _TeacherHomeState extends State<TeacherHome> {
           BottomNavyBarItem(
             icon: const Icon(Icons.apps),
             title: const Text('Subjects'),
-            activeColor: Colors.red,
+            activeColor: Colors.white,
             textAlign: TextAlign.center,
           ),
           BottomNavyBarItem(
             icon: const Icon(Icons.people),
             title: const Text('Students'),
-            activeColor: Colors.purpleAccent,
+            activeColor: Colors.white,
             textAlign: TextAlign.center,
           ),
           BottomNavyBarItem(
-            icon: const Icon(Icons.message),
-            title: const Text(
-              'Messages test for mes teset test test ',
-            ),
-            activeColor: Colors.pink,
+            icon: const Icon(Icons.note_rounded),
+            title: const Text('Assignments'),
+            activeColor: Colors.white,
             textAlign: TextAlign.center,
           ),
           BottomNavyBarItem(
             icon: const Icon(Icons.settings),
             title: const Text('Settings'),
-            activeColor: Colors.blue,
+            activeColor: Colors.white,
             textAlign: TextAlign.center,
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: const Color.fromARGB(255, 37, 37, 37),
         onPressed: () {
           Navigator.push(
             context,
@@ -145,7 +144,7 @@ class _TeacherHomeState extends State<TeacherHome> {
       ),
       appBar: AppBar(
         centerTitle: true,
-        backgroundColor: Colors.black87,
+        backgroundColor: Color.fromARGB(255, 37, 37, 37),
         actions: [
           IconButton(
             onPressed: () {
@@ -300,7 +299,7 @@ class _ShowSubjectState extends ConsumerState<ShowSubject> {
                       subject.subjects![index],
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: Colors.black,
+                        color: Color.fromARGB(255, 37, 37, 37),
                         fontSize: 14,
                       ),
                     ),
