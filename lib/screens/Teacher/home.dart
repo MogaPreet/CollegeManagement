@@ -1,11 +1,7 @@
-import 'dart:convert';
-import 'dart:math';
-
 import 'package:bottom_navy_bar/bottom_navy_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/subjects.dart';
 import 'package:cms/models/user.dart';
-import 'package:cms/screens/Student/studentHome.dart';
 import 'package:cms/screens/Student/widgets/progressIndicator.dart';
 import 'package:cms/screens/Teacher/assignment.dart';
 import 'package:cms/screens/Teacher/fetch_student.dart';
@@ -13,7 +9,7 @@ import 'package:cms/screens/Teacher/notice.dart';
 import 'package:cms/screens/Teacher/show_assignment.dart';
 import 'package:cms/screens/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -97,7 +93,7 @@ class _TeacherHomeState extends State<TeacherHome> {
         showElevation: true,
         itemCornerRadius: 24,
         curve: Curves.easeIn,
-        backgroundColor: Color.fromARGB(255, 37, 37, 37),
+        backgroundColor: const Color.fromARGB(255, 37, 37, 37),
         onItemSelected: (index) {
           if (mounted) setState(() => _currentIndex = index);
         },
@@ -144,7 +140,7 @@ class _TeacherHomeState extends State<TeacherHome> {
       ),
       appBar: AppBar(
         centerTitle: true,
-        backgroundColor: Color.fromARGB(255, 37, 37, 37),
+        backgroundColor: const Color.fromARGB(255, 37, 37, 37),
         actions: [
           IconButton(
             onPressed: () {
@@ -170,43 +166,42 @@ class SubjectPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 10),
-        child: (loggedInUser.years != null)
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  if (loggedInUser.years!.contains("First Year"))
-                    ShowSubject(
-                      teacher: loggedInUser,
-                      year: "First Year",
+    return (loggedInUser.years != null)
+        ? SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    if (loggedInUser.years!.contains("First Year"))
+                      ShowSubject(
+                        teacher: loggedInUser,
+                        year: "First Year",
+                      ),
+                    if (loggedInUser.years!.contains("Second Year"))
+                      ShowSubject(
+                        teacher: loggedInUser,
+                        year: "Second Year",
+                      ),
+                    if (loggedInUser.years!.contains("Third Year"))
+                      ShowSubject(
+                        teacher: loggedInUser,
+                        year: "Third Year",
+                      ),
+                    if (loggedInUser.years!.contains("Fourth Year"))
+                      ShowSubject(
+                        teacher: loggedInUser,
+                        year: "Fourth Year",
+                      ),
+                    const SizedBox(
+                      height: 20,
                     ),
-                  if (loggedInUser.years!.contains("Second Year"))
-                    ShowSubject(
-                      teacher: loggedInUser,
-                      year: "Second Year",
-                    ),
-                  if (loggedInUser.years!.contains("Third Year"))
-                    ShowSubject(
-                      teacher: loggedInUser,
-                      year: "Third Year",
-                    ),
-                  if (loggedInUser.years!.contains("Fourth Year"))
-                    ShowSubject(
-                      teacher: loggedInUser,
-                      year: "Fourth Year",
-                    ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                ],
-              )
-            : const Center(child: CircularProgressIndicator()),
-      ),
-    );
+                  ],
+                )),
+          )
+        : const Center(child: CircularProgressIndicator());
   }
 }
 

@@ -21,7 +21,33 @@ class _ShowAssignmentState extends State<ShowAssignment> {
   @override
   Widget build(BuildContext context) {
     CollectionReference assignment =
-        FirebaseFirestore.instance.collection('assignemnts');
+        FirebaseFirestore.instance.collection('assignments');
+    Widget appButton(
+      Color? color,
+      void Function() action,
+      IconData icon,
+      Text label,
+      Color? fColor,
+    ) {
+      return TextButton.icon(
+        onPressed: action,
+        icon: Icon(
+          icon,
+          size: 18,
+        ),
+        label: label,
+        style: ButtonStyle(
+          padding: MaterialStateProperty.all(const EdgeInsets.all(8)),
+          textStyle: MaterialStateProperty.all(const TextStyle(
+            fontSize: 16,
+          )),
+          backgroundColor: MaterialStateProperty.all(color),
+          foregroundColor: MaterialStateProperty.all(fColor ?? Colors.white),
+        ),
+      );
+    }
+
+    bool showLoading = false;
     return Scaffold(
       body: StreamBuilder<QuerySnapshot>(
           stream: assignment.where("id", isEqualTo: widget.userId).snapshots(),
@@ -30,9 +56,7 @@ class _ShowAssignmentState extends State<ShowAssignment> {
               return const Text('Something went wrong');
             }
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Column(
-                children: const [Center(child: CupertinoActivityIndicator())],
-              );
+              return const Center(child: CupertinoActivityIndicator());
             }
 
             var len = snapshot.data?.docs.length ?? 0;
@@ -59,7 +83,7 @@ class _ShowAssignmentState extends State<ShowAssignment> {
                         child: ExpansionTile(
                           childrenPadding:
                               const EdgeInsets.only(top: 6, bottom: 6.0),
-                          textColor: Color.fromARGB(255, 37, 37, 37),
+                          textColor: const Color.fromARGB(255, 37, 37, 37),
                           title: Text(
                             documentSnapshot["title"],
                             style: const TextStyle(
@@ -110,7 +134,90 @@ class _ShowAssignmentState extends State<ShowAssignment> {
                                     icon: const Icon(Icons.edit),
                                   ),
                                   IconButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      showLoading
+                                          ? const CircularProgressIndicator()
+                                          : showDialog(
+                                              context: context,
+                                              builder: ((context) =>
+                                                  AlertDialog(
+                                                    actionsAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    backgroundColor:
+                                                        const Color.fromARGB(
+                                                            255, 37, 37, 37),
+                                                    contentPadding:
+                                                        const EdgeInsets.all(
+                                                            12.0),
+                                                    title: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: const <
+                                                            Widget>[
+                                                          Text(
+                                                            "Are you sure ?",
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 18,
+                                                            ),
+                                                          ),
+                                                          CloseButton(
+                                                            color: Colors.white,
+                                                          ),
+                                                        ]),
+                                                    content: const Text(
+                                                      "This will delete the assignment from database for ever!!",
+                                                      style: TextStyle(
+                                                        color: Colors.white54,
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ),
+                                                    actions: [
+                                                      appButton(
+                                                        Colors.black,
+                                                        () {
+                                                          Navigator.pop(
+                                                              context);
+                                                        },
+                                                        Icons.cancel,
+                                                        const Text("Cancel"),
+                                                        Colors.white,
+                                                      ),
+                                                      appButton(
+                                                        Colors.black,
+                                                        () {
+                                                          assignment
+                                                              .doc(documentSnapshot[
+                                                                  "assignmentId"])
+                                                              .delete()
+                                                              .then(
+                                                            (value) {
+                                                              print(
+                                                                  "Deleted Succefully");
+                                                              setState(() {
+                                                                showLoading =
+                                                                    true;
+                                                              });
+                                                            },
+                                                          );
+                                                          Navigator.pop(
+                                                              context);
+                                                        },
+                                                        Icons.delete_forever,
+                                                        const Text("Delete"),
+                                                        Colors.red,
+                                                      ),
+                                                    ],
+                                                  )),
+                                            );
+                                    },
                                     icon: const Icon(Icons.delete),
                                   )
                                 ],
@@ -123,6 +230,83 @@ class _ShowAssignmentState extends State<ShowAssignment> {
                   });
             }
           }),
+    );
+  }
+}
+
+class AlertForDelete extends StatefulWidget {
+  final String assignmentId;
+  final CollectionReference assignment;
+  const AlertForDelete(
+      {super.key, required this.assignment, required this.assignmentId});
+
+  @override
+  State<AlertForDelete> createState() => _AlertForDeleteState();
+}
+
+class _AlertForDeleteState extends State<AlertForDelete> {
+  @override
+  Widget build(BuildContext context) {
+    Widget appButton(
+      Color? color,
+      Function action,
+      Icon icon,
+      Text label,
+    ) {
+      return TextButton.icon(
+        onPressed: () {
+          action;
+        },
+        icon: icon,
+        label: label,
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.all(color),
+          foregroundColor: MaterialStateProperty.all(Colors.white),
+        ),
+      );
+    }
+
+    return AlertDialog(
+      backgroundColor: const Color.fromARGB(255, 37, 37, 37),
+      contentPadding: const EdgeInsets.all(12.0),
+      title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const <Widget>[
+            Text(
+              "Are you sure ?",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            CloseButton(),
+          ]),
+      content: const Text(
+          "This will delete the assignment from database for ever!!"),
+      actions: [
+        appButton(
+          Colors.black,
+          () {
+            Navigator.pop(context);
+          },
+          const Icon(Icons.cancel),
+          const Text("Cancel"),
+        ),
+        appButton(
+          Colors.black,
+          () {
+            widget.assignment.doc(widget.assignmentId).delete().then(
+              (value) {
+                print("Deleted Succefully");
+                Navigator.pop(context);
+              },
+            );
+          },
+          const Icon(Icons.delete_forever),
+          const Text("Delete"),
+        )
+      ],
     );
   }
 }

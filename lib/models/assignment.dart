@@ -1,5 +1,6 @@
 class AssignMentModel {
   String? id;
+  String? assignmentId;
   String? url;
   String? title;
   String? desc;
@@ -12,6 +13,7 @@ class AssignMentModel {
   String? subject;
   AssignMentModel({
     this.id,
+    this.assignmentId,
     this.url,
     this.title,
     this.year,
@@ -26,6 +28,7 @@ class AssignMentModel {
   factory AssignMentModel.fromMap(map) {
     return AssignMentModel(
       id: map['id'],
+      assignmentId: map['assignmentId'],
       url: map['url'],
       title: map['title'],
       year: map['year'],
@@ -41,6 +44,7 @@ class AssignMentModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'assignmentId': assignmentId,
       'url': url,
       'title': title,
       'year': year,

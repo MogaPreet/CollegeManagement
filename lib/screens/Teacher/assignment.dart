@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/assignment.dart';
 import 'package:cms/models/user.dart';
+import 'package:cms/screens/Student/widgets/progressIndicator.dart';
 import 'package:cms/screens/Teacher/home.dart';
 import 'package:cms/screens/teacher_signup.dart';
 import 'package:file_picker/file_picker.dart';
@@ -12,6 +13,7 @@ import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as p;
+import 'package:uuid/uuid.dart';
 
 final getUrl = StateProvider<String?>((ref) {
   return "";
@@ -206,7 +208,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
     final dateSelectionButton = Material(
       elevation: 5,
       borderRadius: BorderRadius.circular(5),
-      color: Color.fromARGB(255, 37, 37, 37),
+      color: const Color.fromARGB(255, 37, 37, 37),
       child: MaterialButton(
         padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
         minWidth: MediaQuery.of(context).size.width,
@@ -287,7 +289,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
     final selectFileButton = Material(
       elevation: 5,
       borderRadius: BorderRadius.circular(5),
-      color: Color.fromARGB(255, 37, 37, 37),
+      color: const Color.fromARGB(255, 37, 37, 37),
       child: MaterialButton(
         padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
         minWidth: MediaQuery.of(context).size.width,
@@ -302,7 +304,17 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
     );
 
     void addAssignment() async {
-      final currentBranch = ref.watch(selectBranchForAssignment);
+      var uuid = const Uuid();
+      String assignmentId = uuid.v4();
+      String currentBranch = await ref.watch(selectBranchForAssignment);
+      String branchLogic() {
+        if (currentBranch.isNotEmpty) {
+          return currentBranch;
+        } else {
+          return widget.teacher.branch![0];
+        }
+      }
+
       final isValid = _formKey.currentState!.validate();
       if (isValid && currentDate != null) {
         setState(() {
@@ -321,12 +333,13 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
           assignment.subject = widget.subject;
           assignment.assignedDate = DateTime.now();
           assignment.lastDate = currentDate;
-          assignment.toBranch = currentBranch;
+          assignment.toBranch = branchLogic();
           assignment.year = widget.year;
+          assignment.assignmentId = assignmentId;
 
           await FirebaseFirestore.instance
-              .collection('assignemnts')
-              .doc()
+              .collection('assignments')
+              .doc(assignmentId)
               .set(assignment.toMap());
 
           if (!mounted) return;
@@ -406,30 +419,42 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
                           Column(
                             children: [
                               InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      file = null;
-                                    });
-                                  },
-                                  child: Text("remove")),
+                                onTap: () {
+                                  setState(() {
+                                    file = null;
+                                  });
+                                },
+                                child: const Icon(Icons.cancel),
+                              ),
                               assignmentImage(),
                             ],
                           ),
-                        TextButton(
-                            style: ButtonStyle(
-                              foregroundColor:
-                                  MaterialStateProperty.all(Colors.white),
-                              backgroundColor: MaterialStateProperty.all(
-                                  Color.fromARGB(255, 37, 37, 37)),
-                            ),
-                            onPressed: () async {
-                              addAssignment();
-                            },
-                            child: isLoading
-                                ? const CircularProgressIndicator()
-                                : const Text(
-                                    "Add Assignment",
-                                  ))
+                        MaterialButton(
+                          minWidth: double.infinity,
+                          color: const Color.fromARGB(255, 37, 37, 37),
+                          textColor: Colors.white,
+                          onPressed: () async {
+                            addAssignment();
+                          },
+                          child: isLoading
+                              ? Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: const <Widget>[
+                                    SizedBox(
+                                      height: 10,
+                                      width: 10,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Text("Adding assingment.....")
+                                  ],
+                                )
+                              : const Text(
+                                  "Add Assignment",
+                                ),
+                        ),
                       ],
                     )
                   ],

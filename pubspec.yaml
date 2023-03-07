@@ -50,6 +50,7 @@ dependencies:
   firebase_storage: ^11.0.10
   file_picker: ^5.2.4
   bottom_navy_bar: ^6.0.0
+  uuid: ^3.0.7
 
 dev_dependencies:
   flutter_test:
