@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../models/assignment.dart';
+
 class ShowAssignment extends StatefulWidget {
   final String userId;
   const ShowAssignment({super.key, required this.userId});
@@ -20,6 +22,9 @@ class _ShowAssignmentState extends State<ShowAssignment> {
   );
   @override
   Widget build(BuildContext context) {
+    TextEditingController title = TextEditingController();
+    TextEditingController desc = TextEditingController();
+    final _formKey = GlobalKey<FormState>();
     CollectionReference assignment =
         FirebaseFirestore.instance.collection('assignments');
     Widget appButton(
@@ -46,6 +51,8 @@ class _ShowAssignmentState extends State<ShowAssignment> {
         ),
       );
     }
+
+    DateTime? currentDate;
 
     bool showLoading = false;
     return Scaffold(
@@ -76,7 +83,39 @@ class _ShowAssignmentState extends State<ShowAssignment> {
                         snapshot.data!.docs[index];
                     Timestamp date = documentSnapshot["lastDate"] as Timestamp;
                     DateTime d = date.toDate();
+                    Future<void> _selectDate(BuildContext context) async {
+                      final DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: d,
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime(2050));
+                      if (pickedDate != null && pickedDate != currentDate) {
+                        setState(() {
+                          currentDate = pickedDate;
+                        });
+                      }
+                    }
 
+                    final dateSelectionButton = Material(
+                      elevation: 5,
+                      borderRadius: BorderRadius.circular(5),
+                      color: const Color.fromARGB(255, 37, 37, 37),
+                      child: MaterialButton(
+                        padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+                        minWidth: MediaQuery.of(context).size.width,
+                        onPressed: () {
+                          _selectDate(context);
+                        },
+                        child: Text(
+                          currentDate != null
+                              ? DateFormat('MMM d,yyyy')
+                                  .format(currentDate ?? DateTime.now())
+                              : "Select Last Date",
+                          style: const TextStyle(
+                              fontSize: 15.0, color: Colors.white),
+                        ),
+                      ),
+                    );
                     return Padding(
                       padding: const EdgeInsets.all(4.0),
                       child: Card(
@@ -130,7 +169,223 @@ class _ShowAssignmentState extends State<ShowAssignment> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   IconButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            String? title;
+                                            String? descriptionX;
+                                            return CupertinoAlertDialog(
+                                              title: const Text("Edit"),
+                                              content: Form(
+                                                  key: _formKey,
+                                                  child: Column(
+                                                    children: [
+                                                      Material(
+                                                        child: TextFormField(
+                                                          decoration:
+                                                              InputDecoration(
+                                                            border:
+                                                                const OutlineInputBorder(
+                                                              borderSide:
+                                                                  BorderSide(
+                                                                color: Color
+                                                                    .fromARGB(
+                                                                        255,
+                                                                        37,
+                                                                        37,
+                                                                        37),
+                                                              ),
+                                                            ),
+                                                            focusedBorder:
+                                                                OutlineInputBorder(
+                                                              borderSide: const BorderSide(
+                                                                  width: 2,
+                                                                  color: Color
+                                                                      .fromARGB(
+                                                                          255,
+                                                                          37,
+                                                                          37,
+                                                                          37)),
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          5.0),
+                                                            ),
+                                                            prefixIcon:
+                                                                const Icon(
+                                                              Icons
+                                                                  .event_available_outlined,
+                                                              color: Color
+                                                                  .fromARGB(
+                                                                      255,
+                                                                      37,
+                                                                      37,
+                                                                      37),
+                                                            ),
+                                                            hintText:
+                                                                "Assignment title",
+                                                          ),
+                                                          initialValue:
+                                                              documentSnapshot[
+                                                                  "title"],
+                                                          onChanged: (value) {
+                                                            title = value;
+                                                          },
+                                                        ),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 15,
+                                                      ),
+                                                      Material(
+                                                        child: TextFormField(
+                                                            decoration:
+                                                                InputDecoration(
+                                                              border:
+                                                                  const OutlineInputBorder(
+                                                                borderSide:
+                                                                    BorderSide(
+                                                                  color: Color
+                                                                      .fromARGB(
+                                                                          255,
+                                                                          37,
+                                                                          37,
+                                                                          37),
+                                                                ),
+                                                              ),
+                                                              focusedBorder:
+                                                                  OutlineInputBorder(
+                                                                borderSide: const BorderSide(
+                                                                    width: 2,
+                                                                    color: Color
+                                                                        .fromARGB(
+                                                                            255,
+                                                                            37,
+                                                                            37,
+                                                                            37)),
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            5.0),
+                                                              ),
+                                                              prefixIcon:
+                                                                  const Icon(
+                                                                Icons
+                                                                    .event_available_outlined,
+                                                                color: Color
+                                                                    .fromARGB(
+                                                                        255,
+                                                                        37,
+                                                                        37,
+                                                                        37),
+                                                              ),
+                                                              hintText:
+                                                                  "Assignment title",
+                                                            ),
+                                                            initialValue:
+                                                                documentSnapshot[
+                                                                    "desc"],
+                                                            onChanged:
+                                                                ((value) {
+                                                              descriptionX =
+                                                                  value;
+                                                            })),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 20,
+                                                      ),
+                                                      dateSelectionButton,
+                                                    ],
+                                                  )),
+                                              actions: [
+                                                TextButton(
+                                                    onPressed: () {
+                                                      String getData(
+                                                          String? name,
+                                                          String already) {
+                                                        if (name != null &&
+                                                            name.isNotEmpty) {
+                                                          return name;
+                                                        } else {
+                                                          return already;
+                                                        }
+                                                      }
+
+                                                      AssignMentModel
+                                                          assignmentX =
+                                                          AssignMentModel();
+                                                      assignmentX.id =
+                                                          widget.userId;
+                                                      assignmentX.desc =
+                                                          getData(
+                                                              descriptionX,
+                                                              documentSnapshot[
+                                                                  "desc"]);
+                                                      assignmentX.title =
+                                                          getData(
+                                                              title,
+                                                              documentSnapshot[
+                                                                  "title"]);
+                                                      assignmentX.assignedBy =
+                                                          documentSnapshot[
+                                                              "assignedBy"];
+                                                      assignmentX.url =
+                                                          documentSnapshot[
+                                                              "url"];
+                                                      assignmentX.subject =
+                                                          documentSnapshot[
+                                                              "subject"];
+                                                      Timestamp date =
+                                                          documentSnapshot[
+                                                                  "assignedDate"]
+                                                              as Timestamp;
+                                                      DateTime ad =
+                                                          date.toDate();
+                                                      assignmentX.assignedDate =
+                                                          ad;
+                                                      assignmentX.lastDate =
+                                                          currentDate ?? d;
+                                                      assignmentX.toBranch =
+                                                          documentSnapshot[
+                                                              "toBranch"];
+                                                      assignmentX.year =
+                                                          documentSnapshot[
+                                                              "year"];
+                                                      assignmentX.assignmentId =
+                                                          documentSnapshot[
+                                                              "assignmentId"];
+                                                      final isValid = _formKey
+                                                          .currentState!
+                                                          .validate();
+                                                      if (isValid) {
+                                                        assignment
+                                                            .doc(documentSnapshot[
+                                                                "assignmentId"])
+                                                            .update(assignmentX
+                                                                .toMap())
+                                                            .then(
+                                                              (value) =>
+                                                                  Navigator.pop(
+                                                                      context),
+                                                            );
+                                                      }
+                                                    },
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
+                                                      children: const [
+                                                        Icon(Icons.edit),
+                                                        Text("Edit")
+                                                      ],
+                                                    ))
+                                              ],
+                                            );
+                                          });
+                                    },
                                     icon: const Icon(Icons.edit),
                                   ),
                                   IconButton(
