@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/user.dart';
 import 'package:cms/screens/Student/widgets/StudentCard.dart';
+import 'package:cms/screens/Student/widgets/assignemntCard.dart';
 import 'package:cms/screens/Student/widgets/student_notice.dart';
 import 'package:cms/screens/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -65,45 +66,92 @@ class _StudentHomePageState extends State<StudentHomePage> {
   //     print(e);
   //   }
   // }
+  int selectedIndex = 0;
+  void onItemTapped(int index) {
+    setState(() {
+      selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> _pages = <Widget>[
+      Home(student: student),
+      StudentAssignmentCard(),
+    ];
     return Scaffold(
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.shifting,
+        selectedIconTheme: const IconThemeData(color: Colors.white),
+        currentIndex: selectedIndex,
+        unselectedItemColor: Colors.grey,
+        selectedItemColor: Colors.white,
+        onTap: onItemTapped,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            backgroundColor: Color.fromARGB(255, 37, 37, 37),
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            backgroundColor: Color.fromARGB(255, 37, 37, 37),
+            icon: Icon(Icons.assignment),
+            label: 'Assignment',
+          ),
+        ],
+      ),
       appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: Colors.grey,
+        elevation: 0,
+        backgroundColor: const Color.fromARGB(255, 37, 37, 37),
         actions: [
           IconButton(
             onPressed: () {
               logout(context);
             },
-            icon: const Icon(Icons.logout),
+            icon: const Icon(
+              Icons.logout,
+              color: Colors.white,
+            ),
           )
         ],
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              StudentCard(
-                student: student,
+      body: _pages.elementAt(selectedIndex),
+    );
+  }
+}
+
+class Home extends StatelessWidget {
+  const Home({
+    Key? key,
+    required this.student,
+  }) : super(key: key);
+
+  final StudentModel student;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            StudentCard(
+              student: student,
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            const Text(
+              "Notice ",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
               ),
-              const SizedBox(
-                height: 20,
-              ),
-              const Text(
-                "Notice ",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              StudNotice(mybranch: student.branch ?? ""),
-            ],
-          ),
+            ),
+            StudNotice(mybranch: student.branch ?? ""),
+          ],
         ),
       ),
     );
