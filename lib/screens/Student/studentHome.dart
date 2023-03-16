@@ -77,7 +77,9 @@ class _StudentHomePageState extends State<StudentHomePage> {
   Widget build(BuildContext context) {
     List<Widget> _pages = <Widget>[
       Home(student: student),
-      StudentAssignmentCard(),
+      StudentAssignmentCard(
+        student: student,
+      ),
     ];
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(

@@ -48,6 +48,7 @@ class _StudNoticeState extends ConsumerState<StudNotice> {
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: const [Center(child: CupertinoActivityIndicator())],
             );
           }
@@ -73,7 +74,10 @@ class _StudNoticeState extends ConsumerState<StudNotice> {
                                   .toString()
                                   .substring(0, 10) ==
                               today.toString().substring(0, 10)
-                          ? const Icon(Icons.fiber_new_sharp)
+                          ? const Icon(
+                              Icons.fiber_new_sharp,
+                              color: Colors.red,
+                            )
                           : const Icon(Icons.newspaper),
                       title: Text(documentSnapshot["title"]),
                       trailing: const Icon(Icons.arrow_circle_right_sharp),

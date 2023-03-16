@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class AssignMentModel {
   String? id;
   String? assignmentId;
@@ -11,6 +13,8 @@ class AssignMentModel {
   DateTime? lastDate;
   String? assignedBy;
   String? subject;
+  Timestamp? getAssignDate;
+  Timestamp? getLastDate;
   AssignMentModel({
     this.id,
     this.assignmentId,
@@ -24,6 +28,8 @@ class AssignMentModel {
     this.assignedTo,
     this.lastDate,
     this.subject,
+    this.getAssignDate,
+    this.getLastDate,
   });
   factory AssignMentModel.fromMap(map) {
     return AssignMentModel(
@@ -34,10 +40,10 @@ class AssignMentModel {
       year: map['year'],
       desc: map['desc'],
       toBranch: map['toBranch'],
-      assignedDate: map['assignedDate'],
+      getAssignDate: map['assignedDate'],
       assignedBy: map['assignedBy'],
       assignedTo: map['assignedTo'],
-      lastDate: map['lastDate'],
+      getLastDate: map['lastDate'],
       subject: map['subject'],
     );
   }
