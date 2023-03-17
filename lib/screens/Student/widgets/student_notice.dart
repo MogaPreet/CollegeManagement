@@ -56,7 +56,6 @@ class _StudNoticeState extends ConsumerState<StudNotice> {
           final bane = dres.map((e) => e as NoticeModel).map((e) => e.title);
           var len = snapshot.data?.docs.length ?? 909;
 
-          print("Length $len");
           final today = DateTime.now();
           return Column(
             children: [

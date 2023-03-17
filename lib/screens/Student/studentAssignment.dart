@@ -2,6 +2,11 @@ import 'package:cms/models/assignment.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter_file_view/flutter_file_view.dart';
+
+import 'package:url_launcher/link.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class ShowAssignments extends StatefulWidget {
   final AssignMentModel assigment;
@@ -14,7 +19,16 @@ class ShowAssignments extends StatefulWidget {
 class _ShowAssignmentsState extends State<ShowAssignments> {
   @override
   Widget build(BuildContext context) {
-    var url = Uri(path: widget.assigment.url);
+    final Uri url = Uri.parse(widget.assigment.url ?? "");
+    Future<void> _launchInBrowser(Uri url) async {
+      await canLaunchUrl(url)
+          ? await launchUrl(
+              url,
+              mode: LaunchMode.externalApplication,
+            )
+          : print('could_not_launch_this_app');
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -54,14 +68,29 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
             const SizedBox(
               height: 10,
             ),
-            const Text(
-              "Reference Document",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(url.path),
+            widget.assigment.url != null && widget.assigment.url!.isNotEmpty
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Reference Document",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          print("Your Url -----> $url");
+
+                          _launchInBrowser(url);
+                        },
+                        child: const Text("Open File"),
+                      ),
+                    ],
+                  )
+                : const Text("No Reference Document"),
           ],
         ),
       ),
