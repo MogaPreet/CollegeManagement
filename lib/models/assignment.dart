@@ -64,3 +64,44 @@ class AssignMentModel {
     };
   }
 }
+
+class AssignmentResponseModel {
+  String? id;
+  String? assignmentId;
+  String? url;
+  DateTime? assignedDate;
+  DateTime? lastDate;
+  String? remark;
+  String? status;
+  AssignmentResponseModel({
+    this.id,
+    this.assignmentId,
+    this.url,
+    this.assignedDate,
+    this.lastDate,
+    this.remark,
+    this.status,
+  });
+  factory AssignmentResponseModel.fromMap(map) {
+    return AssignmentResponseModel(
+      id: map['id'],
+      assignmentId: map['assignmentId'],
+      url: map['url'],
+      assignedDate: map['assignedDate'],
+      lastDate: map['lastDate'],
+      remark: map['remark'],
+      status: map['status'],
+    );
+  }
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'assignmentId': assignmentId,
+      'url': url,
+      'assignedDate': assignedDate,
+      'lastDate': lastDate,
+      'remark': remark,
+      'status': status,
+    };
+  }
+}

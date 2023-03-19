@@ -55,7 +55,10 @@ class _StudentAssignmentCardState extends State<StudentAssignmentCard> {
                   final DocumentSnapshot documentSnapshot =
                       snapshot.data!.docs[index];
                   assignment = AssignMentModel.fromMap(documentSnapshot);
-                  return AssignmentCard(assignment: assignment);
+                  return AssignmentCard(
+                    assignment: assignment,
+                    studentId: widget.student.uid ?? "",
+                  );
                 }));
       },
     );
@@ -63,9 +66,12 @@ class _StudentAssignmentCardState extends State<StudentAssignmentCard> {
 }
 
 class AssignmentCard extends StatelessWidget {
+  final String studentId;
+
   const AssignmentCard({
     Key? key,
     required this.assignment,
+    required this.studentId,
   }) : super(key: key);
 
   final AssignMentModel assignment;
@@ -86,7 +92,10 @@ class AssignmentCard extends StatelessWidget {
         GestureDetector(
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return ShowAssignments(assigment: assignment);
+              return ShowAssignments(
+                assigment: assignment,
+                userId: studentId,
+              );
             }));
           },
           child: Card(
