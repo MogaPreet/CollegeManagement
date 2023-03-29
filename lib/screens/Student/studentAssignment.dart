@@ -20,9 +20,13 @@ import '../Teacher/assignment.dart';
 
 class ShowAssignments extends StatefulWidget {
   final AssignMentModel assigment;
+  final String rollNo;
   final String userId;
   const ShowAssignments(
-      {super.key, required this.assigment, required this.userId});
+      {super.key,
+      required this.assigment,
+      required this.rollNo,
+      required this.userId});
 
   @override
   State<ShowAssignments> createState() => _ShowAssignmentsState();
@@ -46,7 +50,7 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
   Future uploadFile() async {
     if (file == null) return;
 
-    final destination = 'files/${assignmentTitleController.text}';
+    final destination = 'files/assignments/${widget.rollNo}';
 
     task = FirebaseApi.uploadFile(destination, file!);
 
@@ -139,7 +143,7 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
           selectFile();
         },
         child: const Text(
-          "Select file",
+          "Upload file",
           style: TextStyle(fontSize: 15.0, color: Colors.white),
         ),
       ),
@@ -168,15 +172,16 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
           AssignmentResponseModel assignment = AssignmentResponseModel();
           assignment.id = widget.userId;
           assignment.assignedDate = widget.assigment.getAssignDate!.toDate();
-          assignment.lastDate = widget.assigment.getLastDate!.toDate();
+          assignment.submittedDate = DateTime.now();
           assignment.url = url1;
           assignment.status = "in review";
           assignment.assignmentId = assignmentId;
+          assignment.rollNo = widget.rollNo;
           print(widget.userId);
           CollectionReference students =
-              FirebaseFirestore.instance.collection("students");
+              FirebaseFirestore.instance.collection("assignments");
           CollectionReference<Map<String, dynamic>> dbRef =
-              students.doc(widget.userId).collection("assignments");
+              students.doc(assignmentId).collection("responses");
           await dbRef.add(assignment.toMap());
 
           if (!mounted) return;
@@ -296,11 +301,11 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
                             color: Colors.white,
                           ),
                         ),
-                        Text("Adding assingment.....")
+                        Text("Uploading assingment.....")
                       ],
                     )
                   : const Text(
-                      "Add Assignment",
+                      "Upload Assignment",
                     ),
             ),
           ],

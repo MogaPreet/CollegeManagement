@@ -53,6 +53,10 @@ dependencies:
   uuid: ^3.0.7
   flutter_file_view: ^2.2.1
   url_launcher: ^6.1.10
+  
+  
+  path_provider: ^2.0.14
+  pdf_viewer_plugin: ^2.0.1
  
  
 

@@ -2,13 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/assignment.dart';
 import 'package:cms/models/user.dart';
 import 'package:cms/screens/Student/studentAssignment.dart';
-import 'package:cms/screens/Student/widgets/progressIndicator.dart';
-import 'package:cms/screens/Teacher/show_assignment.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:intl/src/intl/date_format.dart';
 
 class StudentAssignmentCard extends StatefulWidget {
   final StudentModel student;
@@ -57,6 +51,7 @@ class _StudentAssignmentCardState extends State<StudentAssignmentCard> {
                   assignment = AssignMentModel.fromMap(documentSnapshot);
                   return AssignmentCard(
                     assignment: assignment,
+                    rollNo: widget.student.rollNo ?? "",
                     studentId: widget.student.uid ?? "",
                   );
                 }));
@@ -67,11 +62,12 @@ class _StudentAssignmentCardState extends State<StudentAssignmentCard> {
 
 class AssignmentCard extends StatelessWidget {
   final String studentId;
-
+  final String rollNo;
   const AssignmentCard({
     Key? key,
     required this.assignment,
     required this.studentId,
+    required this.rollNo,
   }) : super(key: key);
 
   final AssignMentModel assignment;
@@ -94,6 +90,7 @@ class AssignmentCard extends StatelessWidget {
             Navigator.push(context, MaterialPageRoute(builder: (context) {
               return ShowAssignments(
                 assigment: assignment,
+                rollNo: rollNo,
                 userId: studentId,
               );
             }));

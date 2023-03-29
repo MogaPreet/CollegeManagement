@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cms/screens/Teacher/assignment_response.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -474,7 +475,19 @@ class _ShowAssignmentState extends State<ShowAssignment> {
                                             );
                                     },
                                     icon: const Icon(Icons.delete),
-                                  )
+                                  ),
+                                  IconButton(
+                                      onPressed: () {
+                                        Navigator.push(context,
+                                            MaterialPageRoute(
+                                                builder: (context) {
+                                          return AssignmentResponse(
+                                              id: documentSnapshot[
+                                                      "assignmentId"] ??
+                                                  "");
+                                        }));
+                                      },
+                                      icon: const Icon(Icons.file_open))
                                 ],
                               ),
                             )

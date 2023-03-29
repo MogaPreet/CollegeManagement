@@ -70,17 +70,19 @@ class AssignmentResponseModel {
   String? assignmentId;
   String? url;
   DateTime? assignedDate;
-  DateTime? lastDate;
+  DateTime? submittedDate;
   String? remark;
   String? status;
+  String? rollNo;
   AssignmentResponseModel({
     this.id,
     this.assignmentId,
     this.url,
     this.assignedDate,
-    this.lastDate,
+    this.submittedDate,
     this.remark,
     this.status,
+    this.rollNo,
   });
   factory AssignmentResponseModel.fromMap(map) {
     return AssignmentResponseModel(
@@ -88,9 +90,10 @@ class AssignmentResponseModel {
       assignmentId: map['assignmentId'],
       url: map['url'],
       assignedDate: map['assignedDate'],
-      lastDate: map['lastDate'],
+      submittedDate: map['submittedDate'],
       remark: map['remark'],
       status: map['status'],
+      rollNo: map['rollNo'],
     );
   }
   Map<String, dynamic> toMap() {
@@ -99,9 +102,10 @@ class AssignmentResponseModel {
       'assignmentId': assignmentId,
       'url': url,
       'assignedDate': assignedDate,
-      'lastDate': lastDate,
+      'submittedDate': submittedDate,
       'remark': remark,
       'status': status,
+      'rollNo': rollNo,
     };
   }
 }
