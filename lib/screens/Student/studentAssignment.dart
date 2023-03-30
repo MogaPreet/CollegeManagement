@@ -49,8 +49,8 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
 
   Future uploadFile() async {
     if (file == null) return;
-
-    final destination = 'files/assignments/${widget.rollNo}';
+    Uuid randId = Uuid();
+    final destination = 'files/assignments/${randId.v4()}';
 
     task = FirebaseApi.uploadFile(destination, file!);
 

@@ -65,6 +65,7 @@ class _AssignmentResponseState extends State<AssignmentResponse> {
                             return PDFscreen(
                               path: response["url"],
                               rollNo: response["rollNo"],
+                              assignmentId: response["assignmentId"],
                             );
                           }));
                         },
@@ -83,7 +84,13 @@ class _AssignmentResponseState extends State<AssignmentResponse> {
 class PDFscreen extends StatefulWidget {
   final String path;
   final String rollNo;
-  const PDFscreen({super.key, required this.path, required this.rollNo});
+  final String assignmentId;
+  const PDFscreen({
+    super.key,
+    required this.path,
+    required this.rollNo,
+    required this.assignmentId,
+  });
 
   @override
   State<PDFscreen> createState() => _PDFscreenState();
@@ -97,9 +104,9 @@ class _PDFscreenState extends State<PDFscreen> {
     Future<String> downloadAndSavePdf() async {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/${widget.rollNo}.pdf');
-      if (await file.exists()) {
-        return file.path;
-      }
+      // if (await file.exists()) {
+      //   return file.path;
+      // }
       final response = await http.get(Uri.parse(widget.path));
       await file.writeAsBytes(response.bodyBytes);
       return file.path;
@@ -107,29 +114,33 @@ class _PDFscreenState extends State<PDFscreen> {
 
     void loadPdf() async {
       pdfFlePath = await downloadAndSavePdf();
+
       setState(() {});
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Roll No"),
+        title: Text(widget.rollNo),
         backgroundColor: Colors.black,
       ),
       body: Center(
         child: Column(
           children: <Widget>[
             ElevatedButton(
-              child: Text("See the work"),
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Colors.black)),
               onPressed: loadPdf,
+              child: const Text("See the work"),
             ),
             if (pdfFlePath != null)
               Expanded(
-                child: Container(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
                   child: PdfView(path: pdfFlePath!),
                 ),
               )
             else
-              Text("Student Might Have Post other than PDF file"),
+              Text(""),
           ],
         ),
       ),
