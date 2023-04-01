@@ -181,8 +181,12 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
           CollectionReference students =
               FirebaseFirestore.instance.collection("assignments");
           CollectionReference<Map<String, dynamic>> dbRef =
-              students.doc(assignmentId).collection("responses");
-          await dbRef.add(assignment.toMap());
+              students.doc(widget.userId).collection("responses");
+          await students
+              .doc(assignmentId)
+              .collection("responses")
+              .doc(widget.userId)
+              .set(assignment.toMap());
 
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(

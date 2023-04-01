@@ -74,6 +74,8 @@ class AssignmentResponseModel {
   String? remark;
   String? status;
   String? rollNo;
+  Timestamp? getAssignDate;
+  Timestamp? getSubmittedDate;
   AssignmentResponseModel({
     this.id,
     this.assignmentId,
@@ -83,14 +85,16 @@ class AssignmentResponseModel {
     this.remark,
     this.status,
     this.rollNo,
+    this.getAssignDate,
+    this.getSubmittedDate,
   });
   factory AssignmentResponseModel.fromMap(map) {
     return AssignmentResponseModel(
       id: map['id'],
       assignmentId: map['assignmentId'],
       url: map['url'],
-      assignedDate: map['assignedDate'],
-      submittedDate: map['submittedDate'],
+      getAssignDate: map['assignedDate'],
+      getSubmittedDate: map['submittedDate'],
       remark: map['remark'],
       status: map['status'],
       rollNo: map['rollNo'],

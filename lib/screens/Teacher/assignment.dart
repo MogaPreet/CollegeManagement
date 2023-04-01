@@ -364,7 +364,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
       child: Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          backgroundColor: Color.fromARGB(255, 37, 37, 37),
+          backgroundColor: const Color.fromARGB(255, 37, 37, 37),
           title: const Text("Assignment"),
         ),
         body: Padding(

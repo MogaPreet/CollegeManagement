@@ -53,6 +53,7 @@ class _StudentAssignmentCardState extends State<StudentAssignmentCard> {
                     assignment: assignment,
                     rollNo: widget.student.rollNo ?? "",
                     studentId: widget.student.uid ?? "",
+                    colref: c,
                   );
                 }));
       },
@@ -63,14 +64,17 @@ class _StudentAssignmentCardState extends State<StudentAssignmentCard> {
 class AssignmentCard extends StatelessWidget {
   final String studentId;
   final String rollNo;
-  const AssignmentCard({
+  final CollectionReference colref;
+  AssignmentCard({
     Key? key,
     required this.assignment,
     required this.studentId,
     required this.rollNo,
+    required this.colref,
   }) : super(key: key);
 
   final AssignMentModel assignment;
+  AssignmentResponseModel assignmentRes = AssignmentResponseModel();
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +89,11 @@ class AssignmentCard extends StatelessWidget {
 
     return Stack(
       children: [
+        ShowStatus(
+          assignment: assignment,
+          colref: colref,
+          studentId: studentId,
+        ),
         GestureDetector(
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -157,6 +166,56 @@ class AssignmentCard extends StatelessWidget {
               ),
             ))
       ],
+    );
+  }
+}
+
+class ShowStatus extends StatefulWidget {
+  final AssignMentModel assignment;
+  final CollectionReference colref;
+  final String studentId;
+  const ShowStatus({
+    super.key,
+    required this.assignment,
+    required this.colref,
+    required this.studentId,
+  });
+
+  @override
+  State<ShowStatus> createState() => _ShowStatusState();
+}
+
+class _ShowStatusState extends State<ShowStatus> {
+  AssignmentResponseModel assignRes = AssignmentResponseModel();
+  @override
+  void initState() {
+    super.initState();
+
+    widget.colref
+        .doc(widget.assignment.assignmentId)
+        .collection("responses")
+        .doc(widget.studentId)
+        .get()
+        .then((value) {
+      assignRes = AssignmentResponseModel.fromMap(value);
+      setState(() {});
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(
+        top: 115,
+        left: 22,
+      ),
+      child: SizedBox(
+        height: 25,
+        width: 345,
+        child: Center(
+          child: Text(assignRes.status ?? "Assigned"),
+        ),
+      ),
     );
   }
 }

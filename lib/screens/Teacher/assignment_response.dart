@@ -26,6 +26,8 @@ class _AssignmentResponseState extends State<AssignmentResponse> {
         .collection('assignments')
         .doc(widget.id)
         .collection('responses');
+    Stream<QuerySnapshot<Object?>> query =
+        assignment.where("assignmentId", isEqualTo: widget.id).snapshots();
 
     return Scaffold(
       appBar: AppBar(
@@ -33,8 +35,7 @@ class _AssignmentResponseState extends State<AssignmentResponse> {
         leading: const BackButton(),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream:
-            assignment.where("assignmentId", isEqualTo: widget.id).snapshots(),
+        stream: query,
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
             return const Text('Something went wrong');
@@ -66,6 +67,7 @@ class _AssignmentResponseState extends State<AssignmentResponse> {
                               path: response["url"],
                               rollNo: response["rollNo"],
                               assignmentId: response["assignmentId"],
+                              colref: assignment,
                             );
                           }));
                         },
@@ -85,11 +87,13 @@ class PDFscreen extends StatefulWidget {
   final String path;
   final String rollNo;
   final String assignmentId;
+  final CollectionReference colref;
   const PDFscreen({
     super.key,
     required this.path,
     required this.rollNo,
     required this.assignmentId,
+    required this.colref,
   });
 
   @override
@@ -121,6 +125,10 @@ class _PDFscreenState extends State<PDFscreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.rollNo),
+        actions: [
+          IconButton(onPressed: () {}, icon: const Icon(Icons.thumb_down)),
+          IconButton(onPressed: () {}, icon: const Icon(Icons.check_box))
+        ],
         backgroundColor: Colors.black,
       ),
       body: Center(
@@ -139,11 +147,31 @@ class _PDFscreenState extends State<PDFscreen> {
                   child: PdfView(path: pdfFlePath!),
                 ),
               )
-            else
-              Text(""),
           ],
         ),
       ),
     );
+  }
+}
+
+class Options extends StatefulWidget {
+  final String status;
+  final String assignmentId;
+  final CollectionReference colref;
+  const Options({
+    super.key,
+    required this.status,
+    required this.assignmentId,
+    required this.colref,
+  });
+
+  @override
+  State<Options> createState() => OoptionsState();
+}
+
+class OoptionsState extends State<Options> {
+  @override
+  Widget build(BuildContext context) {
+    return const AlertDialog();
   }
 }

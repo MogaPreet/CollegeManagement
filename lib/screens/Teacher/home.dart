@@ -112,13 +112,12 @@ class _TeacherHomeState extends State<TeacherHome> {
           ),
           BottomNavyBarItem(
             icon: const Icon(Icons.note_rounded),
-            title: const Text('Assignments'),
-            activeColor: Colors.white,
-            textAlign: TextAlign.center,
-          ),
-          BottomNavyBarItem(
-            icon: const Icon(Icons.settings),
-            title: const Text('Settings'),
+            title: const Text(
+              'Assignments',
+              style: TextStyle(
+                fontSize: 12,
+              ),
+            ),
             activeColor: Colors.white,
             textAlign: TextAlign.center,
           ),
