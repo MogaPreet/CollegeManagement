@@ -7,6 +7,7 @@ class StudentModel {
   String? currentYear;
   bool? isDse;
   String? rollNo;
+
   StudentModel({
     this.uid,
     this.email,

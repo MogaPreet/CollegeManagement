@@ -61,7 +61,7 @@ class _ShowAssignmentState extends State<ShowAssignment> {
           stream: assignment.where("id", isEqualTo: widget.userId).snapshots(),
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (snapshot.hasError) {
-              return const Text('Something went wrong');
+              return const Text('Someing went wrong');
             }
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CupertinoActivityIndicator());
@@ -371,14 +371,14 @@ class _ShowAssignmentState extends State<ShowAssignment> {
                                                             );
                                                       }
                                                     },
-                                                    child: Row(
+                                                    child: const Row(
                                                       mainAxisAlignment:
                                                           MainAxisAlignment
                                                               .center,
                                                       crossAxisAlignment:
                                                           CrossAxisAlignment
                                                               .center,
-                                                      children: const [
+                                                      children: [
                                                         Icon(Icons.edit),
                                                         Text("Edit")
                                                       ],
@@ -406,12 +406,11 @@ class _ShowAssignmentState extends State<ShowAssignment> {
                                                     contentPadding:
                                                         const EdgeInsets.all(
                                                             12.0),
-                                                    title: Row(
+                                                    title: const Row(
                                                         mainAxisAlignment:
                                                             MainAxisAlignment
                                                                 .spaceBetween,
-                                                        children: const <
-                                                            Widget>[
+                                                        children: <Widget>[
                                                           Text(
                                                             "Are you sure ?",
                                                             style: TextStyle(
@@ -537,9 +536,9 @@ class _AlertForDeleteState extends State<AlertForDelete> {
     return AlertDialog(
       backgroundColor: const Color.fromARGB(255, 37, 37, 37),
       contentPadding: const EdgeInsets.all(12.0),
-      title: Row(
+      title: const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const <Widget>[
+          children: <Widget>[
             Text(
               "Are you sure ?",
               style: TextStyle(

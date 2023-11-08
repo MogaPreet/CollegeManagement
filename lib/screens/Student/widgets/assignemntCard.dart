@@ -61,7 +61,7 @@ class _StudentAssignmentCardState extends State<StudentAssignmentCard> {
   }
 }
 
-class AssignmentCard extends StatelessWidget {
+class AssignmentCard extends StatefulWidget {
   final String studentId;
   final String rollNo;
   final CollectionReference colref;
@@ -74,7 +74,27 @@ class AssignmentCard extends StatelessWidget {
   }) : super(key: key);
 
   final AssignMentModel assignment;
+
+  @override
+  State<AssignmentCard> createState() => _AssignmentCardState();
+}
+
+class _AssignmentCardState extends State<AssignmentCard> {
   AssignmentResponseModel assignmentRes = AssignmentResponseModel();
+  @override
+  void initState() {
+    super.initState();
+
+    widget.colref
+        .doc(widget.assignment.assignmentId)
+        .collection("responses")
+        .doc(widget.rollNo)
+        .get()
+        .then((value) {
+      assignmentRes = AssignmentResponseModel.fromMap(value);
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,25 +104,36 @@ class AssignmentCard extends StatelessWidget {
       return (to.difference(from).inHours / 24).round();
     }
 
-    DateTime? date = assignment.getLastDate!.toDate();
+    DateTime? date = widget.assignment.getLastDate!.toDate();
     final difference = daysBetween(date, DateTime.now()).abs();
 
     return Stack(
       children: [
-        ShowStatus(
-          assignment: assignment,
-          colref: colref,
-          studentId: studentId,
-        ),
+        if (assignmentRes.status != null && assignmentRes.status != "")
+          Card(
+            margin: const EdgeInsets.only(
+              top: 115,
+              left: 22,
+            ),
+            child: SizedBox(
+              height: 30,
+              width: 345,
+              child: Center(
+                child: Text(assignmentRes.status ?? "Assigned"),
+              ),
+            ),
+          ),
         GestureDetector(
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return ShowAssignments(
-                assigment: assignment,
-                rollNo: rollNo,
-                userId: studentId,
-              );
-            }));
+            if (assignmentRes.status?.toLowerCase() != "accepted") {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return ShowAssignments(
+                  assigment: widget.assignment,
+                  rollNo: widget.rollNo,
+                  userId: widget.studentId,
+                );
+              }));
+            }
           },
           child: Card(
             color: const Color.fromRGBO(32, 29, 27, 1),
@@ -121,7 +152,7 @@ class AssignmentCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      assignment.title ?? "",
+                      widget.assignment.title ?? "",
                       softWrap: true,
                       maxLines: 1,
                       overflow: TextOverflow.fade,
@@ -135,7 +166,7 @@ class AssignmentCard extends StatelessWidget {
                       height: 8,
                     ),
                     Text(
-                      assignment.subject ?? "",
+                      widget.assignment.subject ?? "",
                       maxLines: 1,
                       overflow: TextOverflow.fade,
                       style: const TextStyle(
@@ -150,21 +181,22 @@ class AssignmentCard extends StatelessWidget {
             ),
           ),
         ),
-        Card(
-            color: const Color.fromRGBO(84, 84, 84, 1),
-            shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(10))),
-            margin: const EdgeInsetsDirectional.only(
-              start: 35,
-              top: 5,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(6.0),
-              child: Text(
-                "$difference days left",
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+        if (assignmentRes.status?.toLowerCase() != "accepted")
+          Card(
+              color: const Color.fromRGBO(84, 84, 84, 1),
+              shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10))),
+              margin: const EdgeInsetsDirectional.only(
+                start: 35,
+                top: 5,
               ),
-            ))
+              child: Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: Text(
+                  "$difference days left",
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ))
       ],
     );
   }
@@ -174,11 +206,13 @@ class ShowStatus extends StatefulWidget {
   final AssignMentModel assignment;
   final CollectionReference colref;
   final String studentId;
+  final String rollNo;
   const ShowStatus({
     super.key,
     required this.assignment,
     required this.colref,
     required this.studentId,
+    required this.rollNo,
   });
 
   @override
@@ -194,7 +228,7 @@ class _ShowStatusState extends State<ShowStatus> {
     widget.colref
         .doc(widget.assignment.assignmentId)
         .collection("responses")
-        .doc(widget.studentId)
+        .doc(widget.rollNo)
         .get()
         .then((value) {
       assignRes = AssignmentResponseModel.fromMap(value);

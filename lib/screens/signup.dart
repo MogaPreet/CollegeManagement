@@ -445,7 +445,7 @@ class _registrationState extends ConsumerState<registration> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      const Text("Already have an account? "),
+                      const Text("Sign up as a teacher "),
                       GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -454,7 +454,7 @@ class _registrationState extends ConsumerState<registration> {
                                   builder: (contex) => const TeacherSignup()));
                         },
                         child: const Text(
-                          "Sign In",
+                          "sign up",
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15.0,

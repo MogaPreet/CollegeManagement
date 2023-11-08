@@ -39,7 +39,10 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
   bool isLoading = false;
   final assignmentTitleController = TextEditingController();
   Future selectFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
 
     if (result == null) return;
     final path = result.files.single.path!;
@@ -49,7 +52,7 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
 
   Future uploadFile() async {
     if (file == null) return;
-    Uuid randId = Uuid();
+    Uuid randId = const Uuid();
     final destination = 'files/assignments/${randId.v4()}';
 
     task = FirebaseApi.uploadFile(destination, file!);
@@ -105,7 +108,8 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
               width: double.infinity,
               height: 200.0,
               decoration: BoxDecoration(
-                  border: Border.all(color: Color.fromARGB(255, 37, 37, 37))),
+                  border:
+                      Border.all(color: const Color.fromARGB(255, 37, 37, 37))),
               child: file != null &&
                           file!.path.isNotEmpty &&
                           p.extension(file!.path).contains('.jpeg') ||
@@ -185,7 +189,7 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
           await students
               .doc(assignmentId)
               .collection("responses")
-              .doc(widget.userId)
+              .doc(widget.rollNo)
               .set(assignment.toMap());
 
           if (!mounted) return;
@@ -245,29 +249,33 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
             const SizedBox(
               height: 10,
             ),
-            widget.assigment.url != null && widget.assigment.url!.isNotEmpty
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Reference Document",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          print("Your Url -----> $url");
+            if (widget.assigment.url != null &&
+                widget.assigment.url!.isNotEmpty)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Reference Document",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.black,
+                    ),
+                    onPressed: () {
+                      print("Your Url -----> $url");
 
-                          _launchInBrowser(url);
-                        },
-                        child: const Text("Open File"),
-                      ),
-                    ],
-                  )
-                : const Text("No Reference Document"),
+                      _launchInBrowser(url);
+                    },
+                    child: const Text("Open File"),
+                  ),
+                ],
+              ),
             selectFileButton,
             const SizedBox(
               height: 20,
@@ -294,10 +302,10 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
                 addAssignment();
               },
               child: isLoading
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  ? const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       crossAxisAlignment: CrossAxisAlignment.center,
-                      children: const <Widget>[
+                      children: <Widget>[
                         SizedBox(
                           height: 10,
                           width: 10,
@@ -305,11 +313,11 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
                             color: Colors.white,
                           ),
                         ),
-                        Text("Uploading assingment.....")
+                        Text("Please Wait..")
                       ],
                     )
                   : const Text(
-                      "Upload Assignment",
+                      "Submit Assignment",
                     ),
             ),
           ],

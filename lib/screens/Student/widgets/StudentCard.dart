@@ -70,7 +70,7 @@ class _StudentCardState extends State<StudentCard> {
                           const Padding(
                             padding: EdgeInsets.only(left: 5),
                             child: Text(
-                              "Edit Profile",
+                              "",
                               style: TextStyle(
                                 fontSize: 12,
                                 decoration: TextDecoration.underline,

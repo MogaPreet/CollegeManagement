@@ -4,6 +4,7 @@ import 'package:cms/models/subjects.dart';
 import 'package:cms/models/user.dart';
 import 'package:cms/screens/Student/widgets/progressIndicator.dart';
 import 'package:cms/screens/Teacher/assignment.dart';
+import 'package:cms/screens/Teacher/conditionalRoute.dart';
 import 'package:cms/screens/Teacher/fetch_student.dart';
 import 'package:cms/screens/Teacher/notice.dart';
 import 'package:cms/screens/Teacher/show_assignment.dart';
@@ -274,7 +275,7 @@ class _ShowSubjectState extends ConsumerState<ShowSubject> {
                   context,
                   MaterialPageRoute(
                     builder: (context) {
-                      return AssignmentTeacherPage(
+                      return OptionsForSubject(
                         teacher: widget.teacher,
                         subject: subject.subjects?[index],
                         year: widget.year,

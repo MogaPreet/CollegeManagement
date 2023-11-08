@@ -104,6 +104,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
       ),
       appBar: AppBar(
         elevation: 0,
+        title: Padding(padding: EdgeInsets.only(left: 5), child: Text("CMS")),
         backgroundColor: const Color.fromARGB(255, 37, 37, 37),
         actions: [
           IconButton(

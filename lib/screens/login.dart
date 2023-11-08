@@ -84,8 +84,8 @@ class _LoginScreenState extends State<LoginScreen> {
               color: Colors.blue,
             ),
           ),
-          onPressed: () => Navigator.push(
-              context, MaterialPageRoute(builder: (context) => MainScreen())),
+          onPressed: () => Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const MainScreen())),
         ),
       );
     }
@@ -145,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final loginButton = Material(
         elevation: 5,
         borderRadius: BorderRadius.circular(5),
-        color: Color.fromARGB(255, 0, 0, 0),
+        color: const Color.fromARGB(255, 0, 0, 0),
         child: MaterialButton(
           padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
           minWidth: MediaQuery.of(context).size.width,
@@ -202,10 +202,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       emailField,
                       const SizedBox(height: 25),
                       passwordField,
-                      const SizedBox(height: 35),
+                      const SizedBox(height: 25),
                       loginButton,
                       const SizedBox(height: 5),
-                      forgotPassword(context),
+                      // forgotPassword(context), for forgot password
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[

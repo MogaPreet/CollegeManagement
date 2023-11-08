@@ -37,10 +37,8 @@ class _FetchStudentState extends ConsumerState<FetchStudent> {
                   return const Text('Something went wrong');
                 }
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Column(
-                    children: const [
-                      Center(child: CupertinoActivityIndicator())
-                    ],
+                  return const Column(
+                    children: [Center(child: CupertinoActivityIndicator())],
                   );
                 }
                 final dres = snapshot.data!.docs.map((e) => e.data());
@@ -62,8 +60,190 @@ class _FetchStudentState extends ConsumerState<FetchStudent> {
                           return ListTile(
                             leading: const Icon(Icons.person_rounded),
                             title: Text(documentSnapshot["firstName"]),
-                            trailing:
-                                const Icon(Icons.arrow_circle_right_sharp),
+                            trailing: GestureDetector(
+                                onTap: () {
+                                  showGeneralDialog(
+                                      context: context,
+                                      barrierDismissible: true,
+                                      barrierLabel:
+                                          MaterialLocalizations.of(context)
+                                              .modalBarrierDismissLabel,
+                                      barrierColor: Colors.black45,
+                                      transitionDuration:
+                                          const Duration(milliseconds: 200),
+                                      pageBuilder: (BuildContext buildContext,
+                                          Animation animation,
+                                          Animation secondaryAnimation) {
+                                        return Center(
+                                          child: Container(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width -
+                                                10,
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .height -
+                                                80,
+                                            padding: const EdgeInsets.all(20),
+                                            color: Colors.white,
+                                            child: Column(
+                                              children: [
+                                                Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  children: [
+                                                    const Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          "First Name :",
+                                                          style: TextStyle(
+                                                            color: Colors.black,
+                                                            fontSize: 14,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .none,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          "Last Name :",
+                                                          style: TextStyle(
+                                                            color: Colors.black,
+                                                            fontSize: 14,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .none,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          "Email :",
+                                                          style: TextStyle(
+                                                            color: Colors.black,
+                                                            fontSize: 14,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .none,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          "Roll No :",
+                                                          style: TextStyle(
+                                                            color: Colors.black,
+                                                            fontSize: 14,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .none,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          "Branch :",
+                                                          style: TextStyle(
+                                                            color: Colors.black,
+                                                            fontSize: 14,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .none,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          documentSnapshot[
+                                                                  "firstName"] ??
+                                                              "",
+                                                          style:
+                                                              const TextStyle(
+                                                            color: Colors.black,
+                                                            fontSize: 14,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .none,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          documentSnapshot[
+                                                                  "lastName"] ??
+                                                              "",
+                                                          style:
+                                                              const TextStyle(
+                                                            color: Colors.black,
+                                                            fontSize: 14,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .none,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          documentSnapshot[
+                                                                  "email"] ??
+                                                              "",
+                                                          style:
+                                                              const TextStyle(
+                                                            color: Colors.black,
+                                                            fontSize: 14,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .none,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          documentSnapshot[
+                                                                  "rollNo"] ??
+                                                              "",
+                                                          style:
+                                                              const TextStyle(
+                                                            color: Colors.black,
+                                                            fontSize: 14,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .none,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          documentSnapshot[
+                                                                  "branch"] ??
+                                                              "",
+                                                          style:
+                                                              const TextStyle(
+                                                            color: Colors.black,
+                                                            fontSize: 14,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .none,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                                Spacer(),
+                                                ElevatedButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: const Text(
+                                                    "Ok",
+                                                    style: TextStyle(
+                                                        color: Colors.white),
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      });
+                                },
+                                child:
+                                    const Icon(Icons.arrow_circle_right_sharp)),
                           );
                         }),
                     // if (len >= 3)
