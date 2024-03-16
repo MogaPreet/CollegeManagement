@@ -83,7 +83,7 @@ class OptionsForSubject extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 16,
             ),
             GestureDetector(
