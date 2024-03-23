@@ -137,11 +137,10 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
   @override
   Widget build(BuildContext context) {
     final selectFileButton = Material(
-      elevation: 5,
-      borderRadius: BorderRadius.circular(5),
+      elevation: 3,
+      borderRadius: BorderRadius.circular(12),
       color: const Color.fromARGB(255, 37, 37, 37),
       child: MaterialButton(
-        padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
         minWidth: MediaQuery.of(context).size.width,
         onPressed: () {
           selectFile();
@@ -211,9 +210,53 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
     }
 
     return Scaffold(
+      bottomSheet: MaterialButton(
+        minWidth: MediaQuery.of(context).size.width,
+        height: 50,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+        ),
+        color: const Color.fromARGB(255, 37, 37, 37),
+        textColor: Colors.white,
+        onPressed: () async {
+          addAssignment();
+        },
+        child: isLoading
+            ? const Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  SizedBox(
+                    height: 10,
+                    width: 10,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Text("Please Wait..")
+                ],
+              )
+            : const Text(
+                "Submit",
+              ),
+      ),
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text("Assignment Detail"),
+        titleSpacing: 0,
+        toolbarHeight: 100,
+        centerTitle: true,
+        backgroundColor: Colors.black12,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(24),
+            bottomRight: Radius.circular(24),
+          ),
+        ),
+        title: const Text("Assignment Details"),
       ),
       body: Padding(
         padding: const EdgeInsetsDirectional.only(
@@ -251,31 +294,28 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
             ),
             if (widget.assigment.url != null &&
                 widget.assigment.url!.isNotEmpty)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Reference Document",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(
+                    double.infinity,
+                    50,
                   ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.black,
-                    ),
-                    onPressed: () {
-                      print("Your Url -----> $url");
+                  foregroundColor: Colors.white,
+                  backgroundColor: const Color.fromARGB(255, 37, 37, 37),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                ),
+                onPressed: () {
+                  print("Your Url -----> $url");
 
-                      _launchInBrowser(url);
-                    },
-                    child: const Text("Open File"),
-                  ),
-                ],
+                  _launchInBrowser(url);
+                },
+                child: const Text("Reference Document"),
               ),
+            SizedBox(
+              height: 10,
+            ),
             selectFileButton,
             const SizedBox(
               height: 20,
@@ -294,32 +334,6 @@ class _ShowAssignmentsState extends State<ShowAssignments> {
                   assignmentImage(),
                 ],
               ),
-            MaterialButton(
-              minWidth: double.infinity,
-              color: const Color.fromARGB(255, 37, 37, 37),
-              textColor: Colors.white,
-              onPressed: () async {
-                addAssignment();
-              },
-              child: isLoading
-                  ? const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        SizedBox(
-                          height: 10,
-                          width: 10,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                          ),
-                        ),
-                        Text("Please Wait..")
-                      ],
-                    )
-                  : const Text(
-                      "Submit Assignment",
-                    ),
-            ),
           ],
         ),
       ),

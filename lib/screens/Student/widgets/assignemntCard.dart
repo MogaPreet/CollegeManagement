@@ -137,16 +137,16 @@ class _AssignmentCardState extends State<AssignmentCard> {
             }
           },
           child: Card(
-            color: const Color.fromRGBO(32, 29, 27, 1),
+            color: Colors.orange.shade200,
             shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(10))),
             margin: const EdgeInsets.all(20),
             child: SizedBox(
-              height: 200,
+              height: MediaQuery.of(context).size.height * 0.20,
               width: 400,
               child: Padding(
                 padding: const EdgeInsetsDirectional.only(
-                  top: 25,
+                  top: 20,
                   start: 14,
                 ),
                 child: Column(
@@ -160,25 +160,47 @@ class _AssignmentCardState extends State<AssignmentCard> {
                           widget.assignment.title ?? "",
                           softWrap: true,
                           maxLines: 1,
-                          overflow: TextOverflow.fade,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             fontSize: 26,
                           ),
                         ),
                         const SizedBox(
-                          height: 8,
+                          height: 5,
                         ),
                         Text(
                           widget.assignment.subject ?? "",
                           maxLines: 1,
                           overflow: TextOverflow.fade,
                           style: const TextStyle(
-                            color: Colors.grey,
                             fontWeight: FontWeight.w300,
                             fontSize: 12,
                           ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.watch_later_outlined,
+                            ),
+                            SizedBox(
+                              width: 5,
+                            ),
+                            Text(
+                              widget.assignment.getLastDate
+                                      ?.toDate()
+                                      .toString()
+                                      .substring(0, 10) ??
+                                  "",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w100,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -189,7 +211,6 @@ class _AssignmentCardState extends State<AssignmentCard> {
                           Text(
                             widget.assignment.assignedBy ?? "",
                             style: TextStyle(
-                              color: Colors.white,
                               fontWeight: FontWeight.w300,
                               fontSize: 14,
                             ),
@@ -198,12 +219,23 @@ class _AssignmentCardState extends State<AssignmentCard> {
                             width: 10,
                           ),
                           Text(
-                            widget.assignment.assignedDate?.hour.toString() ??
+                            "Assigned on",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w100,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Text(
+                            widget.assignment.getAssignDate
+                                    ?.toDate()
+                                    .toString() ??
                                 "",
                             style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w300,
-                              fontSize: 14,
+                              fontWeight: FontWeight.w100,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -217,7 +249,7 @@ class _AssignmentCardState extends State<AssignmentCard> {
         ),
         if (assignmentRes.status?.toLowerCase() != "accepted")
           Card(
-            color: const Color.fromRGBO(84, 84, 84, 1),
+            color: Colors.black12,
             shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(10))),
             margin: const EdgeInsetsDirectional.only(
@@ -227,7 +259,9 @@ class _AssignmentCardState extends State<AssignmentCard> {
             child: Padding(
               padding: const EdgeInsets.all(6.0),
               child: Text(
-                "Due in $difference days",
+                assignmentRes.status != null
+                    ? assignmentRes.status ?? ""
+                    : "Due in $difference days",
                 style: const TextStyle(color: Colors.white, fontSize: 12),
               ),
             ),
