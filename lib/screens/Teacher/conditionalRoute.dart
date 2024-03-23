@@ -20,127 +20,215 @@ class OptionsForSubject extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(subject ?? ""),
-        backgroundColor: const Color.fromARGB(255, 37, 37, 37),
+        titleSpacing: 0,
+        toolbarHeight: 100,
+        centerTitle: true,
+        backgroundColor: Colors.black12,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(24),
+            bottomRight: Radius.circular(24),
+          ),
+        ),
+        title: Text(
+          subject ?? "",
+          style: const TextStyle(overflow: TextOverflow.ellipsis),
+        ),
       ),
       body: Padding(
-        padding: const EdgeInsets.only(left: 24, right: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return AssignmentTeacherPage(
-                        teacher: teacher,
-                        subject: subject,
-                        year: year,
-                      );
-                    },
+        padding: const EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+        ),
+        child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return AssignmentTeacherPage(
+                          teacher: teacher,
+                          subject: subject,
+                          year: year,
+                        );
+                      },
+                    ),
+                  );
+                },
+                child: Container(
+                  height: 180,
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(32),
+                  decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.black54,
+                          Colors.black45,
+                          Colors.black38,
+                          Colors.black26,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.all(Radius.circular(
+                          16))), // Adds a gradient background and rounded corners to the container
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.add_task,
+                            color: Colors.white,
+                            size: 60,
+                          ),
+                        ],
+                      ),
+                      Text('Add Asssignment',
+                          style: TextStyle(
+                              fontSize: 24,
+                              color: Colors
+                                  .white)) // Adds a price to the bottom of the card
+                    ],
                   ),
-                );
-              },
-              child: Container(
-                height: 180,
-                width: double.infinity,
-                padding: const EdgeInsets.all(32),
-                decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color.fromARGB(255, 103, 103, 107),
-                        Color.fromARGB(255, 168, 166, 180),
-                        Color.fromARGB(255, 93, 92, 94),
-                        Color.fromARGB(255, 10, 10, 10),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.all(Radius.circular(
-                        16))), // Adds a gradient background and rounded corners to the container
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.add_task,
-                          color: Colors.white,
-                          size: 60,
-                        ),
-                      ],
-                    ),
-                    Text('Asssignment',
-                        style: TextStyle(
-                            fontSize: 24,
-                            color: Colors
-                                .white)) // Adds a price to the bottom of the card
-                  ],
                 ),
               ),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return AttendancePage(
-                        myBranch: teacher.branch ?? [],
-                        currentYear: year,
-                      );
-                    },
+              const SizedBox(
+                height: 16,
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return AttendancePage(
+                          myBranch: teacher.branch ?? [],
+                          subject: subject ?? "",
+                          currentYear: year,
+                        );
+                      },
+                    ),
+                  );
+                },
+                child: Container(
+                  height: 180,
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(32),
+                  decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.black26,
+                          Colors.black38,
+                          Colors.black45,
+                          Colors.black54,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.all(Radius.circular(
+                          16))), // Adds a gradient background and rounded corners to the container
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.people_outline_sharp,
+                            color: Colors.white,
+                            size: 60,
+                          ),
+                        ],
+                      ),
+                      Text('Attendance',
+                          style: TextStyle(
+                              fontSize: 24,
+                              color: Colors
+                                  .white)) // Adds a price to the bottom of the card
+                    ],
                   ),
-                );
-              },
-              child: Container(
-                height: 180,
-                width: double.infinity,
-                padding: const EdgeInsets.all(32),
-                decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color.fromARGB(255, 103, 103, 107),
-                        Color.fromARGB(255, 168, 166, 180),
-                        Color.fromARGB(255, 93, 92, 94),
-                        Color.fromARGB(255, 10, 10, 10),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.all(Radius.circular(
-                        16))), // Adds a gradient background and rounded corners to the container
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.people_outline_sharp,
-                          color: Colors.white,
-                          size: 60,
-                        ),
-                      ],
-                    ),
-                    Text('Attendance',
-                        style: TextStyle(
-                            fontSize: 24,
-                            color: Colors
-                                .white)) // Adds a price to the bottom of the card
-                  ],
                 ),
               ),
-            ),
-          ],
+              const SizedBox(
+                height: 16,
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return AttendancePage(
+                          myBranch: teacher.branch ?? [],
+                          subject: subject ?? "",
+                          currentYear: year,
+                        );
+                      },
+                    ),
+                  );
+                },
+                child: Container(
+                  height: 180,
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(32),
+                  decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.black26,
+                          Colors.black38,
+                          Colors.black45,
+                          Colors.black54,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.all(Radius.circular(
+                          16))), // Adds a gradient background and rounded corners to the container
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.home_max,
+                            color: Colors.white,
+                            size: 60,
+                          ),
+                        ],
+                      ),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.8,
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.fitWidth,
+                          child: Text(
+                            'Upload Video Refernces',
+                            style: TextStyle(
+                              fontSize: 24,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ) // Adds a price to the bottom of the card
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

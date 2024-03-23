@@ -43,10 +43,7 @@ class _StudNoticeState extends ConsumerState<StudNotice> {
             return const Text('Something went wrong');
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [Center(child: CupertinoActivityIndicator())],
-            );
+            return const Center(child: CupertinoActivityIndicator());
           }
           final dres = snapshot.data!.docs.map((e) => e.data());
           final bane = dres.map((e) => e as NoticeModel).map((e) => e.title);
@@ -60,11 +57,13 @@ class _StudNoticeState extends ConsumerState<StudNotice> {
                   shrinkWrap: true,
                   physics: const BouncingScrollPhysics(),
                   itemCount: len,
+                  padding: EdgeInsets.only(left: 10, right: 10),
                   itemBuilder: (context, index) {
                     final DocumentSnapshot documentSnapshot =
                         snapshot.data!.docs[index];
 
                     return ListTile(
+                      contentPadding: EdgeInsets.zero,
                       leading: documentSnapshot["createdAt"]
                                   .toString()
                                   .substring(0, 10) ==
@@ -73,9 +72,69 @@ class _StudNoticeState extends ConsumerState<StudNotice> {
                               Icons.fiber_new_sharp,
                               color: Colors.red,
                             )
-                          : const Icon(Icons.newspaper),
-                      title: Text(documentSnapshot["title"]),
-                      trailing: const Icon(Icons.arrow_circle_right_sharp),
+                          : const Icon(Icons.feed_rounded),
+                      title: Text(
+                        documentSnapshot["title"],
+                        maxLines: 1,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      trailing: GestureDetector(
+                          onTap: () {
+                            showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    insetPadding: const EdgeInsets.symmetric(
+                                        horizontal: 25.0, vertical: 20.0),
+                                    title: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "Notice",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            Text(
+                                              documentSnapshot["createdAt"]
+                                                  .toString()
+                                                  .substring(0, 19),
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w300,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        CloseButton(),
+                                      ],
+                                    ),
+                                    content: SizedBox(
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              0.3,
+                                      width: MediaQuery.of(context).size.width *
+                                          0.8,
+                                      child: SingleChildScrollView(
+                                        physics: BouncingScrollPhysics(),
+                                        child: Text(
+                                          documentSnapshot["desc"],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                });
+                          },
+                          child: const Icon(Icons.arrow_circle_right_sharp)),
                     );
                   }),
               if (len >= 3)

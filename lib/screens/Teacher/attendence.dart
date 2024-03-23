@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cms/models/attendance.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,10 +11,12 @@ import 'package:path_provider/path_provider.dart';
 //use riverpod for state management for this code
 class AttendancePage extends ConsumerStatefulWidget {
   final List<String> myBranch;
+  final String subject;
   final String currentYear;
   const AttendancePage({
     super.key,
     required this.myBranch,
+    required this.subject,
     required this.currentYear,
   });
 
@@ -72,12 +75,8 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
     // Save Excel file
     final documentsDirectory = await getApplicationDocumentsDirectory();
     print(documentsDirectory.path);
-    final formattedDate = DateTime.now().day.toString() +
-        '-' +
-        DateTime.now().month.toString() +
-        '-' +
-        DateTime.now().year.toString() +
-        '${widget.currentYear}_${selectedBranch}';
+    final formattedDate =
+        '${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}${widget.currentYear}_${selectedBranch}';
 
     final excelFileName = formattedDate + '.xlsx';
     final excelFile = File('/storage/emulated/0/Download/$excelFileName');
@@ -184,13 +183,49 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
                 if (selectedBranch.isNotEmpty)
                   ElevatedButton(
                     onPressed: () async {
-                      await generateExcelFile(
-                        snapshot.data!.docs,
-                        switchValues,
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('Excel file generated successfully'),
-                      ));
+                      try {
+                        await FirebaseFirestore.instance
+                            .collection('attendance')
+                            .add({
+                          'branch': selectedBranch,
+                          'year': widget.currentYear,
+                          'subject': widget.subject,
+                          'date': Timestamp.now(),
+                          'presentStudents': switchValues
+                              .asMap()
+                              .entries
+                              .where((element) => element.value)
+                              .map((e) => snapshot.data!.docs[e.key]
+                                  .get('uid')
+                                  .toString())
+                              .toList(),
+                        });
+                        await generateExcelFile(
+                          snapshot.data!.docs,
+                          switchValues,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Excel file generated successfully'),
+                        ));
+                      } catch (e) {
+                        // ignore: use_build_context_synchronously
+                        showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('Error'),
+                                content: Text(e.toString()),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('OK'),
+                                  )
+                                ],
+                              );
+                            });
+                      } finally {}
                     },
                     child: Text('Download Attandance'),
                   )

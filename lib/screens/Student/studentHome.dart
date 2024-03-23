@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/user.dart';
 import 'package:cms/screens/Student/widgets/StudentCard.dart';
+import 'package:cms/screens/Student/widgets/dashboard_data.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cms/screens/Student/widgets/assignemntCard.dart';
 import 'package:cms/screens/Student/widgets/student_notice.dart';
 import 'package:cms/screens/login.dart';
@@ -83,29 +85,42 @@ class _StudentHomePageState extends State<StudentHomePage> {
     ];
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.shifting,
-        selectedIconTheme: const IconThemeData(color: Colors.white),
         currentIndex: selectedIndex,
+        backgroundColor: Colors.transparent,
         unselectedItemColor: Colors.grey,
-        selectedItemColor: Colors.white,
+        elevation: 0,
+        selectedItemColor: Colors.black,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
         onTap: onItemTapped,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            backgroundColor: Color.fromARGB(255, 37, 37, 37),
-            icon: Icon(Icons.home),
+            icon: Icon(Icons.home_rounded),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            backgroundColor: Color.fromARGB(255, 37, 37, 37),
-            icon: Icon(Icons.assignment),
+            icon: Icon(Icons.work_rounded),
             label: 'Assignment',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'User',
           ),
         ],
       ),
       appBar: AppBar(
         elevation: 0,
-        title: Padding(padding: EdgeInsets.only(left: 5), child: Text("CMS")),
-        backgroundColor: const Color.fromARGB(255, 37, 37, 37),
+        titleSpacing: 0,
+        title: Padding(
+            padding:
+                EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.05),
+            child: Text(
+              "Hey, ${student.firstName ?? ""}",
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+              ),
+            )),
         actions: [
           IconButton(
             onPressed: () {
@@ -136,24 +151,126 @@ class Home extends StatelessWidget {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            StudentCard(
-              student: student,
+            Stack(
+              children: [
+                Container(
+                  margin: EdgeInsets.only(
+                      left: MediaQuery.of(context).size.width * 0.1),
+                  child: SvgPicture.asset(
+                    'assets/students_final.svg',
+                    width: MediaQuery.of(context).size.width,
+                  ),
+                ),
+                Positioned(
+                  left: MediaQuery.of(context).size.width * 0.05,
+                  top: MediaQuery.of(context).size.height * 0.10,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Next Class',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 20,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Text(
+                        "Thu 16 March, \n11:00 AM",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 20,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.5,
+                        child: Text(
+                          'System Programming and Compiler Design',
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w300,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(
               height: 20,
             ),
-            const Text(
-              "Notice ",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+            // const Text(
+            //   "Notice ",
+            //   style: TextStyle(
+            //     fontWeight: FontWeight.bold,
+            //     fontSize: 20,
+            //   ),
+            // ),
+            // StudNotice(mybranch: student.branch ?? ""),
+            Padding(
+              padding: EdgeInsets.only(
+                  left: MediaQuery.of(context).size.width * 0.05,
+                  right: MediaQuery.of(context).size.width * 0.05),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      DashBoardCard(
+                        color: Colors.red.shade50,
+                        subTitle: "75%",
+                        title: "Total Attendance",
+                      ),
+                      DashBoardCard(
+                        color: Colors.blue.shade50,
+                        subTitle: "75%",
+                        title: "Total Attendance",
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.015,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      DashBoardCard(
+                        color: Colors.purple.shade50,
+                        subTitle: "75%",
+                        title: "Total Attendance",
+                      ),
+                      DashBoardCard(
+                        color: Colors.pink.shade50,
+                        subTitle: "75%",
+                        title: "Total Attendance",
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.020,
+                  ),
+                  Text(
+                    "Notice",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                  StudNotice(mybranch: student.branch ?? ""),
+                ],
               ),
-            ),
-            StudNotice(mybranch: student.branch ?? ""),
+            )
           ],
         ),
       ),

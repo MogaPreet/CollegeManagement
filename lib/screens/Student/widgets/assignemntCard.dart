@@ -105,6 +105,7 @@ class _AssignmentCardState extends State<AssignmentCard> {
     }
 
     DateTime? date = widget.assignment.getLastDate!.toDate();
+
     final difference = daysBetween(date, DateTime.now()).abs();
 
     return Stack(
@@ -141,7 +142,7 @@ class _AssignmentCardState extends State<AssignmentCard> {
                 borderRadius: BorderRadius.all(Radius.circular(10))),
             margin: const EdgeInsets.all(20),
             child: SizedBox(
-              height: 100,
+              height: 200,
               width: 400,
               child: Padding(
                 padding: const EdgeInsetsDirectional.only(
@@ -150,29 +151,62 @@ class _AssignmentCardState extends State<AssignmentCard> {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      widget.assignment.title ?? "",
-                      softWrap: true,
-                      maxLines: 1,
-                      overflow: TextOverflow.fade,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 24,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.assignment.title ?? "",
+                          softWrap: true,
+                          maxLines: 1,
+                          overflow: TextOverflow.fade,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 26,
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        Text(
+                          widget.assignment.subject ?? "",
+                          maxLines: 1,
+                          overflow: TextOverflow.fade,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w300,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    Text(
-                      widget.assignment.subject ?? "",
-                      maxLines: 1,
-                      overflow: TextOverflow.fade,
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w300,
-                        fontSize: 12,
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: Row(
+                        children: [
+                          Text(
+                            widget.assignment.assignedBy ?? "",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w300,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Text(
+                            widget.assignment.assignedDate?.hour.toString() ??
+                                "",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w300,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -183,20 +217,21 @@ class _AssignmentCardState extends State<AssignmentCard> {
         ),
         if (assignmentRes.status?.toLowerCase() != "accepted")
           Card(
-              color: const Color.fromRGBO(84, 84, 84, 1),
-              shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10))),
-              margin: const EdgeInsetsDirectional.only(
-                start: 35,
-                top: 5,
+            color: const Color.fromRGBO(84, 84, 84, 1),
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10))),
+            margin: const EdgeInsetsDirectional.only(
+              start: 35,
+              top: 5,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(6.0),
+              child: Text(
+                "Due in $difference days",
+                style: const TextStyle(color: Colors.white, fontSize: 12),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(6.0),
-                child: Text(
-                  "$difference days left",
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              ))
+            ),
+          )
       ],
     );
   }

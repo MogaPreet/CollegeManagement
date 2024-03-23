@@ -61,7 +61,12 @@ class _TeacherHomeState extends State<TeacherHome> {
   Widget appBarText() {
     switch (_currentIndex) {
       case 0:
-        return const Text("My Subjects");
+        return const Text(
+          "My Subjects",
+          style: TextStyle(
+            fontSize: 16,
+          ),
+        );
       case 1:
         return const Text("My Students");
       case 2:
@@ -91,25 +96,36 @@ class _TeacherHomeState extends State<TeacherHome> {
     return Scaffold(
       bottomNavigationBar: BottomNavyBar(
         selectedIndex: _currentIndex,
-        showElevation: true,
-        itemCornerRadius: 24,
+        showElevation: false,
+        itemCornerRadius: 16,
         curve: Curves.easeIn,
-        backgroundColor: const Color.fromARGB(255, 37, 37, 37),
         onItemSelected: (index) {
           if (mounted) setState(() => _currentIndex = index);
         },
         items: <BottomNavyBarItem>[
           BottomNavyBarItem(
             icon: const Icon(Icons.apps),
-            title: const Text('Subjects'),
-            activeColor: Colors.white,
+            title: const Text(
+              'Subjects',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             textAlign: TextAlign.center,
+            activeColor: Colors.black,
+            inactiveColor: Colors.grey.shade700,
           ),
           BottomNavyBarItem(
             icon: const Icon(Icons.people),
-            title: const Text('Students'),
-            activeColor: Colors.white,
+            title: const Text(
+              'Students',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             textAlign: TextAlign.center,
+            activeColor: Colors.black,
+            inactiveColor: Colors.grey.shade700,
           ),
           BottomNavyBarItem(
             icon: const Icon(Icons.note_rounded),
@@ -117,9 +133,11 @@ class _TeacherHomeState extends State<TeacherHome> {
               'Assignments',
               style: TextStyle(
                 fontSize: 12,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            activeColor: Colors.white,
+            activeColor: Colors.black,
+            inactiveColor: Colors.grey.shade700,
             textAlign: TextAlign.center,
           ),
         ],
@@ -139,8 +157,6 @@ class _TeacherHomeState extends State<TeacherHome> {
         icon: const Icon(Icons.edit),
       ),
       appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 37, 37, 37),
         actions: [
           IconButton(
             onPressed: () {
@@ -259,7 +275,7 @@ class _ShowSubjectState extends ConsumerState<ShowSubject> {
             widget.year,
             style: TextStyle(
               color: Colors.grey.shade900,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w400,
               fontSize: 18,
             ),
           ),
@@ -285,17 +301,25 @@ class _ShowSubjectState extends ConsumerState<ShowSubject> {
                 );
               },
               child: Card(
-                elevation: 6,
-                shadowColor: Colors.grey.shade50,
+                elevation: 4,
+                shadowColor: Colors.black12.withOpacity(0.1),
+                color: Colors.black12.withOpacity(0.1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(8),
                   child: Center(
-                    child: Text(
-                      subject.subjects![index],
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Color.fromARGB(255, 37, 37, 37),
-                        fontSize: 14,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.7,
+                      child: Text(
+                        subject.subjects![index],
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Color.fromARGB(255, 37, 37, 37),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),

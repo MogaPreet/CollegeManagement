@@ -130,7 +130,8 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
               width: double.infinity,
               height: 200.0,
               decoration: BoxDecoration(
-                  border: Border.all(color: Color.fromARGB(255, 37, 37, 37))),
+                  border:
+                      Border.all(color: const Color.fromARGB(255, 37, 37, 37))),
               child: file != null &&
                           file!.path.isNotEmpty &&
                           p.extension(file!.path).contains('.jpeg') ||
@@ -158,47 +159,50 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
   Widget branchSelection() {
     return DecoratedBox(
       decoration: BoxDecoration(
-          color: Color.fromARGB(255, 37, 37, 37),
-          borderRadius: BorderRadius.circular(8)),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 15, right: 15),
-        child: DropdownButton(
-          // Initial Value
-          value: ref.read(selectBranchForAssignment).isNotEmpty
-              ? ref.read(selectBranchForAssignment)
-              : widget.teacher.branch![0],
-          disabledHint: const Text("Select Branch"),
-          style: const TextStyle(color: Colors.white),
+          color: const Color.fromARGB(255, 37, 37, 37),
+          borderRadius: BorderRadius.circular(12)),
+      child: DropdownButton(
+        underline: const SizedBox(),
 
-          borderRadius: BorderRadius.circular(2),
-
-          isExpanded: true,
-          dropdownColor: Color.fromARGB(255, 37, 37, 37),
-          // Down Arrow Icon
-
-          icon: const Icon(
-            Icons.keyboard_arrow_down,
-            color: Colors.white,
-          ),
-
-          // Array list of items
-          items: widget.teacher.branch!.map((String branch) {
-            return DropdownMenuItem(
-              value: branch,
-              child: Text(branch),
-            );
-          }).toList(),
-          // After selecting the desired option,it will
-
-          onChanged: (String? newValue) {
-            setState(() {
-              ref
-                  .watch(selectBranchForAssignment.notifier)
-                  .update((state) => newValue!);
-            });
-          },
-          hint: const Text("select college"),
+        padding: const EdgeInsets.only(
+          left: 10,
+          right: 10,
         ),
+        // Initial Value
+        value: ref.read(selectBranchForAssignment).isNotEmpty
+            ? ref.read(selectBranchForAssignment)
+            : widget.teacher.branch![0],
+        disabledHint: const Text("Select Branch"),
+        style: const TextStyle(color: Colors.white, fontSize: 15),
+
+        borderRadius: BorderRadius.circular(12),
+
+        isExpanded: true,
+        dropdownColor: const Color.fromARGB(255, 37, 37, 37),
+        // Down Arrow Icon
+
+        icon: const Icon(
+          Icons.keyboard_arrow_down,
+          color: Colors.white,
+        ),
+
+        // Array list of items
+        items: widget.teacher.branch!.map((String branch) {
+          return DropdownMenuItem(
+            value: branch,
+            child: Text(branch),
+          );
+        }).toList(),
+        // After selecting the desired option,it will
+
+        onChanged: (String? newValue) {
+          setState(() {
+            ref
+                .watch(selectBranchForAssignment.notifier)
+                .update((state) => newValue!);
+          });
+        },
+        hint: const Text("select college"),
       ),
     );
   }
@@ -206,11 +210,10 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
   @override
   Widget build(BuildContext context) {
     final dateSelectionButton = Material(
-      elevation: 5,
-      borderRadius: BorderRadius.circular(5),
+      elevation: 3,
+      borderRadius: BorderRadius.circular(12),
       color: const Color.fromARGB(255, 37, 37, 37),
       child: MaterialButton(
-        padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
         minWidth: MediaQuery.of(context).size.width,
         onPressed: () {
           _selectDate(context);
@@ -237,20 +240,20 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
       },
       decoration: InputDecoration(
         border: const OutlineInputBorder(
-          borderSide: BorderSide(
-            color: Color.fromARGB(255, 37, 37, 37),
-          ),
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+          borderSide: BorderSide(),
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: const BorderSide(
-              width: 2, color: Color.fromARGB(255, 37, 37, 37)),
-          borderRadius: BorderRadius.circular(5.0),
+            width: 1.5,
+          ),
+          borderRadius: BorderRadius.circular(12.0),
         ),
         prefixIcon: const Icon(
           Icons.event_available_outlined,
           color: Color.fromARGB(255, 37, 37, 37),
         ),
-        hintText: "Assignment title",
+        hintText: "Title",
       ),
     );
     final assignmentDesc = TextFormField(
@@ -270,28 +273,27 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
       keyboardType: TextInputType.multiline,
       decoration: InputDecoration(
         border: const OutlineInputBorder(
-          borderSide: BorderSide(
-            color: Color.fromARGB(255, 37, 37, 37),
-          ),
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+          borderSide: BorderSide(),
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: const BorderSide(
-              width: 2, color: Color.fromARGB(255, 37, 37, 37)),
-          borderRadius: BorderRadius.circular(5.0),
+            width: 1.5,
+          ),
+          borderRadius: BorderRadius.circular(12.0),
         ),
         prefixIcon: const Icon(
           Icons.description_outlined,
           color: Color.fromARGB(255, 37, 37, 37),
         ),
-        hintText: "Assignment Description",
+        hintText: "Description",
       ),
     );
     final selectFileButton = Material(
-      elevation: 5,
-      borderRadius: BorderRadius.circular(5),
+      elevation: 3,
+      borderRadius: BorderRadius.circular(12),
       color: const Color.fromARGB(255, 37, 37, 37),
       child: MaterialButton(
-        padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
         minWidth: MediaQuery.of(context).size.width,
         onPressed: () {
           selectFile();
@@ -360,106 +362,129 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
       }
     }
 
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          backgroundColor: const Color.fromARGB(255, 37, 37, 37),
-          title: const Text("Assignment"),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-          child: NotificationListener<OverscrollIndicatorNotification>(
-            onNotification: ((overscroll) {
-              overscroll.disallowIndicator();
-              return true;
-            }),
-            child: Form(
-                key: _formKey,
-                child: ListView(
-                  children: <Widget>[
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          widget.subject ?? "",
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        assignTitle,
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        assignmentDesc,
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        dateSelectionButton,
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        widget.teacher.branch!.length == 1
-                            ? Text(
-                                widget.teacher.branch!.map((e) => e).toString())
-                            : branchSelection(),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        selectFileButton,
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        if (file != null && file!.path.isNotEmpty)
-                          Column(
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    file = null;
-                                  });
-                                },
-                                child: const Icon(Icons.cancel),
-                              ),
-                              assignmentImage(),
-                            ],
-                          ),
-                        MaterialButton(
-                          minWidth: double.infinity,
-                          color: const Color.fromARGB(255, 37, 37, 37),
-                          textColor: Colors.white,
-                          onPressed: () async {
-                            addAssignment();
-                          },
-                          child: isLoading
-                              ? Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: const <Widget>[
-                                    SizedBox(
-                                      height: 10,
-                                      width: 10,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    Text("Adding assingment.....")
-                                  ],
-                                )
-                              : const Text(
-                                  "Add Assignment",
-                                ),
-                        ),
-                      ],
-                    )
-                  ],
-                )),
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        titleSpacing: 0,
+        toolbarHeight: 100,
+        backgroundColor: Colors.black12,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(24),
+            bottomRight: Radius.circular(24),
           ),
+        ),
+        title: Column(
+          children: [
+            const Text("Assignment"),
+            Text(
+              widget.subject ?? "",
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomSheet: MaterialButton(
+        padding: const EdgeInsets.symmetric(
+          vertical: 15.0,
+        ),
+        minWidth: double.infinity,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+          topRight: Radius.circular(24),
+          topLeft: Radius.circular(24),
+        )),
+        color: const Color.fromARGB(255, 37, 37, 37),
+        textColor: Colors.white,
+        onPressed: () async {
+          addAssignment();
+        },
+        child: isLoading
+            ? const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  SizedBox(
+                    height: 10,
+                    width: 10,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Text("Adding assingment.....")
+                ],
+              )
+            : const Text(
+                "Add Assignment",
+              ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+        child: NotificationListener<OverscrollIndicatorNotification>(
+          onNotification: ((overscroll) {
+            overscroll.disallowIndicator();
+            return true;
+          }),
+          child: Form(
+              key: _formKey,
+              child: ListView(
+                shrinkWrap: true,
+                physics: BouncingScrollPhysics(),
+                children: <Widget>[
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      assignTitle,
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      assignmentDesc,
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      dateSelectionButton,
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      widget.teacher.branch!.length == 1
+                          ? Text(
+                              widget.teacher.branch!.map((e) => e).toString())
+                          : branchSelection(),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      selectFileButton,
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      if (file != null && file!.path.isNotEmpty)
+                        Column(
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  file = null;
+                                });
+                              },
+                              child: const Icon(Icons.cancel),
+                            ),
+                            assignmentImage(),
+                          ],
+                        ),
+                    ],
+                  ),
+                ],
+              )),
         ),
       ),
     );
