@@ -1,6 +1,7 @@
 import 'package:cms/models/user.dart';
 import 'package:cms/screens/Teacher/assignment.dart';
 import 'package:cms/screens/Teacher/attendence.dart';
+import 'package:cms/screens/Teacher/uploadNotes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -168,11 +169,7 @@ class OptionsForSubject extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) {
-                        return AttendancePage(
-                          myBranch: teacher.branch ?? [],
-                          subject: subject ?? "",
-                          currentYear: year,
-                        );
+                        return UploadNotes();
                       },
                     ),
                   );

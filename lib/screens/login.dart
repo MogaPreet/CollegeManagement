@@ -9,6 +9,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fluttertoast/fluttertoast.dart';
@@ -80,9 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: const Text(
             "Forget Password?",
             textAlign: TextAlign.right,
-            style: TextStyle(
-              color: Colors.blue,
-            ),
+            style: TextStyle(),
           ),
           onPressed: () => Navigator.push(context,
               MaterialPageRoute(builder: (context) => const MainScreen())),
@@ -144,93 +143,103 @@ class _LoginScreenState extends State<LoginScreen> {
     );
     final loginButton = Material(
         elevation: 5,
-        borderRadius: BorderRadius.circular(5),
-        color: const Color.fromARGB(255, 0, 0, 0),
-        child: MaterialButton(
-          padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
-          minWidth: MediaQuery.of(context).size.width,
-          onPressed: () async {
-            signIn(emailController.text, passwordController.text);
-            final prefs = await SharedPreferences.getInstance();
-            prefs.setBool('isLoggedIn', true);
-          },
-          child: _isLoading
-              ? const SizedBox(
-                  width: 20.0,
-                  height: 20.0,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
+        borderRadius: BorderRadius.circular(12),
+        child: Consumer(builder: (context, ref, child) {
+          final theme = ref.read(themeModeProvider);
+          return MaterialButton(
+            color: theme == ThemeMode.dark ? Colors.white : Colors.black,
+            padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+            minWidth: MediaQuery.of(context).size.width,
+            onPressed: () async {
+              signIn(emailController.text, passwordController.text);
+              final prefs = await SharedPreferences.getInstance();
+              prefs.setBool('isLoggedIn', true);
+            },
+            child: _isLoading
+                ? const SizedBox(
+                    width: 20.0,
+                    height: 20.0,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Text(
+                    "Login",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                      color:
+                          theme == ThemeMode.dark ? Colors.black : Colors.white,
+                    ),
                   ),
-                )
-              : const Text(
-                  "Login",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-        ));
+          );
+        }));
 
     return Scaffold(
-      backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
-          child: Container(
-            color: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.all(36.0),
-              child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                        margin: const EdgeInsets.only(right: 15),
-                        child: SizedBox(
-                          width: 200.0,
-                          child: Image.asset(
-                            "assets/login.png",
-                            fit: BoxFit.contain,
-                          ),
+          child: Padding(
+            padding: const EdgeInsets.all(36.0),
+            child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                      margin: const EdgeInsets.only(right: 15),
+                      child: SizedBox(
+                        width: 200.0,
+                        child: Image.asset(
+                          "assets/login.png",
+                          fit: BoxFit.contain,
                         ),
                       ),
-                      const SizedBox(height: 35),
-                      emailField,
-                      const SizedBox(height: 25),
-                      passwordField,
-                      const SizedBox(height: 25),
-                      loginButton,
-                      const SizedBox(height: 5),
-                      // forgotPassword(context), for forgot password
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          const Text("Don't have an account? "),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const registration()));
-                            },
-                            child: const Text(
-                              "Sign up",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15.0,
-                                  color: Colors.redAccent),
+                    ),
+                    const SizedBox(height: 35),
+                    emailField,
+                    const SizedBox(height: 25),
+                    passwordField,
+                    const SizedBox(height: 25),
+                    loginButton,
+                    const SizedBox(height: 5),
+                    // forgotPassword(context), for forgot password
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Consumer(builder: (context, ref, child) {
+                          final theme = ref.read(themeModeProvider);
+                          return Text(
+                            "Don't have an account? ",
+                            style: TextStyle(
+                              color: theme == ThemeMode.dark
+                                  ? Colors.white
+                                  : Colors.black,
                             ),
-                          )
-                        ],
-                      )
-                    ],
-                  )),
-            ),
+                          );
+                        }),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const registration()));
+                          },
+                          child: const Text(
+                            "Sign up",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15.0,
+                                color: Colors.redAccent),
+                          ),
+                        )
+                      ],
+                    )
+                  ],
+                )),
           ),
         ),
       ),

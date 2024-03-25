@@ -12,6 +12,7 @@ import 'package:cms/screens/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -31,6 +32,7 @@ class _TeacherHomeState extends State<TeacherHome> {
   @override
   void initState() {
     super.initState();
+
     teacher.doc(user?.uid).get().then((value) {
       loggedInUser = TeacherModel.fromMap(value.data());
       setState(() {});
@@ -68,9 +70,19 @@ class _TeacherHomeState extends State<TeacherHome> {
           ),
         );
       case 1:
-        return const Text("My Students");
+        return const Text(
+          "My Students",
+          style: TextStyle(
+            fontSize: 16,
+          ),
+        );
       case 2:
-        return const Text("My Assignments");
+        return const Text(
+          "My Assignments",
+          style: TextStyle(
+            fontSize: 16,
+          ),
+        );
       default:
     }
     return const Text("Something went Wrong");
@@ -143,7 +155,8 @@ class _TeacherHomeState extends State<TeacherHome> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color.fromARGB(255, 37, 37, 37),
+        backgroundColor: Colors.black26,
+        elevation: 0,
         onPressed: () {
           Navigator.push(
             context,
@@ -159,11 +172,32 @@ class _TeacherHomeState extends State<TeacherHome> {
       appBar: AppBar(
         actions: [
           IconButton(
-            onPressed: () {
-              logout(context);
-            },
             icon: const Icon(Icons.logout),
-          )
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text("Logout"),
+                      content: const Text("Are you sure you want to logout?"),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text("No"),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            logout(context);
+                          },
+                          child: const Text("Yes"),
+                        ),
+                      ],
+                    );
+                  });
+            },
+          ),
         ],
         title: appBarText(),
       ),

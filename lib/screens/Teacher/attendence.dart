@@ -87,6 +87,23 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
       excelFile
         ..createSync()
         ..writeAsBytesSync(fileBytes);
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Success'),
+            content: Text('File saved to ${excelFile.path}'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('OK'),
+              )
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -94,25 +111,26 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 37, 37, 37),
         title: const Text("Attendance"),
+        backgroundColor: Colors.black12,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(24),
+            bottomRight: Radius.circular(24),
+          ),
+        ),
         bottom: widget.myBranch.isNotEmpty && widget.myBranch.length > 1
             ? PreferredSize(
-                preferredSize: const Size.fromHeight(40),
+                preferredSize: const Size.fromHeight(60),
                 child: DropdownButton<String>(
                   borderRadius: BorderRadius.circular(5),
-                  dropdownColor: const Color.fromARGB(255, 37, 37, 37),
                   padding: const EdgeInsets.only(left: 24, right: 24),
                   isExpanded: true,
-                  style: const TextStyle(
-                    color: Colors.white,
-                  ),
+                  underline: SizedBox(),
                   value: selectedBranch.isNotEmpty ? selectedBranch : null,
                   hint: const Text(
                     "Select Branch",
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
+                    style: TextStyle(),
                   ),
                   items: List.generate(
                       widget.myBranch.length,
@@ -129,9 +147,12 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
               )
             : null,
         actions: [
-          Switch(
-            value: switchValues.every((value) => value),
-            onChanged: toggleSwitches,
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: Switch(
+              value: switchValues.every((value) => value),
+              onChanged: toggleSwitches,
+            ),
           ),
         ],
       ),
@@ -156,80 +177,110 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
               );
             }
 
-            return Column(
-              children: [
-                ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: snapshot.data?.docs.length ?? 0,
-                  itemBuilder: (context, index) {
-                    final DocumentSnapshot documentSnapshot =
-                        snapshot.data!.docs[index];
-                    return Card(
-                      child: ListTile(
-                        title: Text(documentSnapshot["rollNo"]),
-                        subtitle: Text(documentSnapshot["firstName"]),
-                        trailing: Switch(
-                          value: switchValues[index],
-                          onChanged: (value) {
-                            setState(() {
-                              switchValues[index] = value;
-                            });
-                          },
+            return Padding(
+              padding: const EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 24,
+              ),
+              child: Column(
+                children: [
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: snapshot.data?.docs.length ?? 0,
+                    itemBuilder: (context, index) {
+                      final DocumentSnapshot documentSnapshot =
+                          snapshot.data!.docs[index];
+                      return Card(
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                      ),
-                    );
-                  },
-                ),
-                if (selectedBranch.isNotEmpty)
-                  ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await FirebaseFirestore.instance
-                            .collection('attendance')
-                            .add({
-                          'branch': selectedBranch,
-                          'year': widget.currentYear,
-                          'subject': widget.subject,
-                          'date': Timestamp.now(),
-                          'presentStudents': switchValues
-                              .asMap()
-                              .entries
-                              .where((element) => element.value)
-                              .map((e) => snapshot.data!.docs[e.key]
-                                  .get('uid')
-                                  .toString())
-                              .toList(),
-                        });
-                        await generateExcelFile(
-                          snapshot.data!.docs,
-                          switchValues,
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('Excel file generated successfully'),
-                        ));
-                      } catch (e) {
-                        // ignore: use_build_context_synchronously
-                        showDialog(
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                title: const Text('Error'),
-                                content: Text(e.toString()),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    child: const Text('OK'),
-                                  )
-                                ],
-                              );
-                            });
-                      } finally {}
+                        color: Colors.blue.shade50,
+                        child: ListTile(
+                          title: Text(documentSnapshot["rollNo"]),
+                          subtitle: Text(documentSnapshot["firstName"]),
+                          trailing: Switch(
+                            value: switchValues[index],
+                            onChanged: (value) {
+                              setState(() {
+                                switchValues[index] = value;
+                              });
+                            },
+                          ),
+                        ),
+                      );
                     },
-                    child: Text('Download Attandance'),
-                  )
-              ],
+                  ),
+                  Spacer(),
+                  if (selectedBranch.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Consumer(builder: (context, refX, child) {
+                          return ElevatedButton(
+                            style: ButtonStyle(
+                              foregroundColor: MaterialStateProperty.all(
+                                Colors.black,
+                              ),
+                              backgroundColor: MaterialStateProperty.all(
+                                  Colors.green.shade50),
+                              shape: MaterialStateProperty.all(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                            onPressed: () async {
+                              try {
+                                await FirebaseFirestore.instance
+                                    .collection('attendance')
+                                    .add({
+                                  'branch': selectedBranch,
+                                  'year': widget.currentYear,
+                                  'subject': widget.subject,
+                                  'date': Timestamp.now(),
+                                  'presentStudents': switchValues
+                                      .asMap()
+                                      .entries
+                                      .where((element) => element.value)
+                                      .map((e) => snapshot.data!.docs[e.key]
+                                          .get('uid')
+                                          .toString())
+                                      .toList(),
+                                });
+                                await generateExcelFile(
+                                  snapshot.data!.docs,
+                                  switchValues,
+                                );
+                              } catch (e) {
+                                // ignore: use_build_context_synchronously
+                                showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text('Error'),
+                                        content: Text(e.toString()),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('OK'),
+                                          )
+                                        ],
+                                      );
+                                    });
+                              } finally {}
+                            },
+                            child: Text('Download Attandance'),
+                          );
+                        }),
+                      ),
+                    )
+                ],
+              ),
             );
           }),
     );

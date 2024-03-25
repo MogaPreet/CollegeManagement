@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cms/main.dart';
 import 'package:cms/models/notice.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -86,52 +87,68 @@ class _StudNoticeState extends ConsumerState<StudNotice> {
                             showDialog(
                                 context: context,
                                 builder: (context) {
-                                  return AlertDialog(
-                                    insetPadding: const EdgeInsets.symmetric(
-                                        horizontal: 25.0, vertical: 20.0),
-                                    title: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "Notice",
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 16,
+                                  return Consumer(
+                                      builder: (context, ref, child) {
+                                    final theme = ref.watch(themeModeProvider);
+                                    return AlertDialog(
+                                      insetPadding: const EdgeInsets.symmetric(
+                                          horizontal: 25.0, vertical: 20.0),
+                                      title: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "Notice",
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 16,
+                                                  color: theme == ThemeMode.dark
+                                                      ? Colors.white
+                                                      : Colors.black,
+                                                ),
                                               ),
-                                            ),
-                                            Text(
-                                              documentSnapshot["createdAt"]
-                                                  .toString()
-                                                  .substring(0, 19),
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w300,
-                                                fontSize: 12,
+                                              Text(
+                                                documentSnapshot["createdAt"]
+                                                    .toString()
+                                                    .substring(0, 19),
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w300,
+                                                  fontSize: 12,
+                                                  color: theme == ThemeMode.dark
+                                                      ? Colors.white
+                                                      : Colors.black,
+                                                ),
                                               ),
+                                            ],
+                                          ),
+                                          CloseButton(),
+                                        ],
+                                      ),
+                                      content: SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.3,
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.8,
+                                        child: SingleChildScrollView(
+                                          physics: BouncingScrollPhysics(),
+                                          child: Text(
+                                            documentSnapshot["desc"],
+                                            style: TextStyle(
+                                              color: theme == ThemeMode.dark
+                                                  ? Colors.white
+                                                  : Colors.black,
                                             ),
-                                          ],
-                                        ),
-                                        CloseButton(),
-                                      ],
-                                    ),
-                                    content: SizedBox(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              0.3,
-                                      width: MediaQuery.of(context).size.width *
-                                          0.8,
-                                      child: SingleChildScrollView(
-                                        physics: BouncingScrollPhysics(),
-                                        child: Text(
-                                          documentSnapshot["desc"],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  );
+                                    );
+                                  });
                                 });
                           },
                           child: const Icon(Icons.arrow_circle_right_sharp)),

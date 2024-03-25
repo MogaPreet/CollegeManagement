@@ -49,7 +49,13 @@ class _AssignmentResponseState extends State<AssignmentResponse>
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(24),
+            bottomRight: Radius.circular(24),
+          ),
+        ),
+        backgroundColor: Colors.black12,
         bottom: TabBar(
           controller: tabController,
           onTap: (value) {
@@ -296,7 +302,6 @@ class _PDFscreenState extends State<PDFscreen> {
                     },
                     icon: const Icon(Icons.check_box))
               ],
-        backgroundColor: Colors.black,
       ),
       body: Center(
         child: Column(
