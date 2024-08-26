@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/user.dart';
+import 'package:cms/screens/Student/create_event.dart';
+import 'package:cms/screens/Student/eventListpage.dart';
+import 'package:cms/screens/Student/utils/time_utils.dart';
 import 'package:cms/screens/Student/widgets/StudentCard.dart';
 import 'package:cms/screens/Student/widgets/dashboard_data.dart';
 import 'package:flutter/widgets.dart';
@@ -18,14 +21,14 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../main.dart';
 
-class StudentHomePage extends StatefulWidget {
+class StudentHomePage extends ConsumerStatefulWidget {
   const StudentHomePage({super.key});
 
   @override
-  State<StudentHomePage> createState() => _StudentHomePageState();
+  ConsumerState<StudentHomePage> createState() => _StudentHomePageState();
 }
 
-class _StudentHomePageState extends State<StudentHomePage> {
+class _StudentHomePageState extends ConsumerState<StudentHomePage> {
   final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
 
   User? user = FirebaseAuth.instance.currentUser;
@@ -75,12 +78,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
   //     print(e);
   //   }
   // }
-  int selectedIndex = 0;
-  void onItemTapped(int index) {
-    setState(() {
-      selectedIndex = index;
-    });
-  }
 
   String showAppBarText(int currentIndex) {
     switch (currentIndex) {
@@ -89,7 +86,9 @@ class _StudentHomePageState extends State<StudentHomePage> {
       case 1:
         return "Assignment";
       case 2:
-        return "Profile";
+        return "Events";
+      case 3:
+        return 'Profile';
       default:
         return "Home";
     }
@@ -97,15 +96,17 @@ class _StudentHomePageState extends State<StudentHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> _pages = <Widget>[
-      Home(student: student),
+    final selectedIndex = ref.watch(selectedIndexProvider);
+    List<Widget> pages = <Widget>[
+      const Home(),
       StudentAssignmentCard(
         student: student,
       ),
+      EventListPage(),
       StudentCard(student: student),
     ];
     return Scaffold(
-      bottomSheet: selectedIndex == 2
+      bottomSheet: selectedIndex == 3
           ? Container(
               height: MediaQuery.of(context).size.height * 0.4,
               decoration: BoxDecoration(
@@ -263,10 +264,14 @@ class _StudentHomePageState extends State<StudentHomePage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,
         backgroundColor: Colors.transparent,
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.grey,
         elevation: 0,
         showSelectedLabels: false,
         showUnselectedLabels: false,
-        onTap: onItemTapped,
+        onTap: (index) {
+          ref.read(selectedIndexProvider.notifier).state = index;
+        },
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home_rounded),
@@ -277,6 +282,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
             label: 'Assignment',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.event),
+            label: 'Events',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'User',
           ),
@@ -285,6 +294,16 @@ class _StudentHomePageState extends State<StudentHomePage> {
       appBar: AppBar(
         elevation: 0,
         titleSpacing: 0,
+        actions: [
+          if (selectedIndex == 2)
+            IconButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return CreateEventPage();
+                  }));
+                },
+                icon: Icon(Icons.add_box_rounded))
+        ],
         title: Padding(
             padding:
                 EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.06),
@@ -296,120 +315,16 @@ class _StudentHomePageState extends State<StudentHomePage> {
               ),
             )),
       ),
-      body: _pages.elementAt(selectedIndex),
+      body: pages.elementAt(selectedIndex),
     );
   }
 }
 
-class Home extends StatelessWidget {
-  const Home({
-    Key? key,
-    required this.student,
-  }) : super(key: key);
-
-  final StudentModel student;
-
-  int showUpcomingRange() {
-    DateTime now = DateTime.now();
-    DateTime range1Start = DateTime(now.year, now.month, now.day, 8, 30);
-    DateTime range1End = DateTime(now.year, now.month, now.day, 9, 30);
-
-    DateTime range2Start = DateTime(now.year, now.month, now.day, 9, 30);
-    DateTime range2End = DateTime(now.year, now.month, now.day, 10, 30);
-
-    DateTime range3Start = DateTime(now.year, now.month, now.day, 10, 30);
-    DateTime range3End = DateTime(now.year, now.month, now.day, 11, 30);
-
-    DateTime range4Start = DateTime(now.year, now.month, now.day, 11, 30);
-    DateTime range4End = DateTime(now.year, now.month, now.day, 12, 30);
-
-    DateTime range5Start = DateTime(now.year, now.month, now.day, 12, 30);
-    DateTime range5End = DateTime(now.year, now.month, now.day, 13, 30);
-
-    DateTime range6Start = DateTime(now.year, now.month, now.day, 13, 30);
-    DateTime range6End = DateTime(now.year, now.month, now.day, 14, 30);
-
-    DateTime range7Start = DateTime(now.year, now.month, now.day, 14, 30);
-    DateTime range7End = DateTime(now.year, now.month, now.day, 15, 30);
-
-    DateTime range8Start = DateTime(now.year, now.month, now.day, 15, 30);
-    DateTime range8End = DateTime(now.year, now.month, now.day, 16, 30);
-
-    if (now.isAfter(range1Start) && now.isBefore(range1End)) {
-      return 2; // Next range is range 2
-    } else if (now.isAfter(range2Start) && now.isBefore(range2End)) {
-      return 3; // Next range is range 3
-    } else if (now.isAfter(range3Start) && now.isBefore(range3End)) {
-      return 4; // Next range is range 4
-    } else if (now.isAfter(range4Start) && now.isBefore(range4End)) {
-      return 5; // Next range is range 5
-    } else if (now.isAfter(range5Start) && now.isBefore(range5End)) {
-      return 6; // Next range is range 6
-    } else if (now.isAfter(range6Start) && now.isBefore(range6End)) {
-      return 7; // Next range is range 7
-    } else if (now.isAfter(range7Start) && now.isBefore(range7End)) {
-      return 8; // Next range is range 8
-    } else if (now.isAfter(range8Start) && now.isBefore(range8End)) {
-      return 1; // Next range is range 1
-    } else {
-      return 0; // Default to range 1
-    }
-  }
-
-  int checkTimeRange() {
-    // Get the current time
-    DateTime now = DateTime.now();
-
-    // Define the start and end of your time ranges
-    // Note: DateTime.month, DateTime.day aren't really used here, so you can set them to any valid value
-    DateTime range1Start = DateTime(now.year, now.month, now.day, 8, 30);
-    DateTime range1End = DateTime(now.year, now.month, now.day, 9, 30);
-
-    DateTime range2Start = DateTime(now.year, now.month, now.day, 9, 30);
-    DateTime range2End = DateTime(now.year, now.month, now.day, 10, 30);
-
-    DateTime range3Start = DateTime(now.year, now.month, now.day, 10, 30);
-    DateTime range3End = DateTime(now.year, now.month, now.day, 11, 30);
-
-    DateTime range4Start = DateTime(now.year, now.month, now.day, 11, 30);
-    DateTime range4End = DateTime(now.year, now.month, now.day, 12, 30);
-
-    DateTime range5Start = DateTime(now.year, now.month, now.day, 12, 30);
-    DateTime range5End = DateTime(now.year, now.month, now.day, 13, 30);
-
-    DateTime range6Start = DateTime(now.year, now.month, now.day, 13, 30);
-    DateTime range6End = DateTime(now.year, now.month, now.day, 14, 30);
-
-    DateTime range7Start = DateTime(now.year, now.month, now.day, 14, 30);
-    DateTime range7End = DateTime(now.year, now.month, now.day, 15, 30);
-
-    DateTime range8Start = DateTime(now.year, now.month, now.day, 15, 30);
-    DateTime range8End = DateTime(now.year, now.month, now.day, 16, 30);
-
-    if (now.isAfter(range1Start) && now.isBefore(range1End)) {
-      return 1;
-    } else if (now.isAfter(range2Start) && now.isBefore(range2End)) {
-      return 2;
-    } else if (now.isAfter(range3Start) && now.isBefore(range3End)) {
-      return 3;
-    } else if (now.isAfter(range4Start) && now.isBefore(range4End)) {
-      return 4;
-    } else if (now.isAfter(range5Start) && now.isBefore(range5End)) {
-      return 5;
-    } else if (now.isAfter(range6Start) && now.isBefore(range6End)) {
-      return 6;
-    } else if (now.isAfter(range7Start) && now.isBefore(range7End)) {
-      return 7;
-    } else if (now.isAfter(range8Start) && now.isBefore(range8End)) {
-      return 8;
-    } else {
-      return 0;
-    }
-  }
+class Home extends ConsumerWidget {
+  const Home({Key? key}) : super(key: key);
 
   String getCurrentDay() {
     DateTime now = DateTime.now();
-
     List<String> daysOfWeek = [
       "Sunday",
       "Monday",
@@ -417,18 +332,14 @@ class Home extends StatelessWidget {
       "Wednesday",
       "Thursday",
       "Friday",
-      "Saturday"
+      "Saturday",
+      "Sunday"
     ];
-
-    int dayIndex = now.weekday;
-    return daysOfWeek[dayIndex];
+    return daysOfWeek[DateTime.now().weekday];
   }
 
   String getCurrentMonth() {
-    // Get the current month (1 for January, 2 for February, ..., 12 for December)
     int currentMonth = DateTime.now().month;
-
-    // Define a list of abbreviated month names
     List<String> monthNames = [
       "JAN",
       "FEB",
@@ -443,283 +354,219 @@ class Home extends StatelessWidget {
       "NOV",
       "DEC"
     ];
-
-    // Return the abbreviated name of the current month
-    return monthNames[currentMonth - 1]; // Adjust for zero-based index
+    return monthNames[currentMonth - 1];
   }
 
   @override
-  Widget build(BuildContext context) {
-    print(checkTimeRange());
-    print((showUpcomingRange()));
-    print((getCurrentDay()));
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Stack(
-              children: [
-                Consumer(builder: (context, ref, child) {
-                  final theme = ref.watch(themeModeProvider);
-                  return Container(
-                    margin: EdgeInsets.only(
-                        left: MediaQuery.of(context).size.width * 0.1),
-                    child: SvgPicture.asset(
-                      theme == ThemeMode.dark
-                          ? 'assets/students_dark.svg'
-                          : 'assets/students_final.svg',
-                      width: MediaQuery.of(context).size.width,
-                    ),
-                  );
-                }),
-                StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('timetable')
-                        .doc(student.currentYear ?? "")
-                        .collection(student.branch ?? "")
-                        .where('day', isEqualTo: getCurrentDay())
-                        .where(
-                          'index',
-                          isEqualTo: showUpcomingRange(),
-                        )
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.data != null) {
-                        var formattedDay = snapshot.data?.docs
-                                .map((e) => e['day'])
-                                .toString()
-                                .substring(1, 4) ??
-                            "${DateTime.now().day}";
+  Widget build(BuildContext context, WidgetRef ref) {
+    final student = ref.watch(studentProvider);
+    final timetableSnapshot = ref.watch(timetableProvider(getCurrentDay()));
+    final currenttimetableSnapshot =
+        ref.watch(currenttimetableProvider(getCurrentDay()));
+    Future<void> refreshTimetable() async {
+      // Invalidate the providers to trigger a refresh
+      ref.invalidate(studentProvider);
+      ref.invalidate(timetableProvider);
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
 
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return SizedBox();
-                        }
-                        if (snapshot.hasError) {
-                          return const Text('');
-                        }
-                        if (snapshot.data!.docs.isEmpty) {
-                          return const Text('No Data');
-                        }
-                        var data = snapshot.data?.docs[0];
-                        return Consumer(builder: (context, ref, child) {
-                          final theme = ref.watch(themeModeProvider);
-                          return Positioned(
-                            left: MediaQuery.of(context).size.width * 0.05,
-                            top: MediaQuery.of(context).size.height * 0.10,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Next Class',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 20,
-                                    color: theme == ThemeMode.dark
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                Text(
-                                  "$formattedDay ${DateTime.now().day} ${getCurrentMonth()}, \n${data?["startTime"]} PM" ??
-                                      "",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 20,
-                                    color: theme == ThemeMode.dark
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.5,
-                                  child: Text(
-                                    data?["subject"] ?? "",
-                                    textAlign: TextAlign.start,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w300,
-                                      color: theme == ThemeMode.dark
-                                          ? Colors.white
-                                          : Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        });
-                      } else {
-                        return const Text('');
-                      }
-                    }),
-              ],
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            // const Text(
-            //   "Notice ",
-            //   style: TextStyle(
-            //     fontWeight: FontWeight.bold,
-            //     fontSize: 20,
-            //   ),
-            // ),
-            // StudNotice(mybranch: student.branch ?? ""),
-            Padding(
-              padding: EdgeInsets.only(
-                  left: MediaQuery.of(context).size.width * 0.05,
-                  right: MediaQuery.of(context).size.width * 0.05),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return RefreshIndicator(
+      onRefresh: refreshTimetable,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Stack(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('timetable')
-                              .doc('Third Year')
-                              .collection('Computer Engineering')
-                              .where('day', isEqualTo: 'Monday')
-                              .where(
-                                'index',
-                                isEqualTo: checkTimeRange(),
-                              )
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            if (snapshot.data != null) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return Shimmer.fromColors(
-                                  baseColor: Colors.grey.shade300,
-                                  highlightColor: Colors.grey.shade100,
-                                  child: DashBoardCard(
-                                    color: Colors.green.shade50,
-                                    subTitle: "No Class",
-                                    title: "Current Lecture",
-                                  ),
-                                );
-                              }
-                              if (snapshot.hasError) {
-                                return const Text('Something went wrong');
-                              }
-                              if (snapshot.data!.docs.isEmpty) {
-                                return DashBoardCard(
-                                  color: Colors.green.shade50,
-                                  subTitle: "No Class",
-                                  title: "Current Lecture",
-                                );
-                              }
-                              var data = snapshot.data?.docs[0];
-                              return DashBoardCard(
-                                color: Colors.green.shade50,
-                                subTitle: data?["subject"] ?? "",
-                                title: "Current Lecture",
-                              );
-                            } else {
+                  Consumer(builder: (context, ref, child) {
+                    final theme = ref.watch(themeModeProvider);
+                    return Container(
+                      margin: EdgeInsets.only(
+                          left: MediaQuery.of(context).size.width * 0.1),
+                      child: SvgPicture.asset(
+                        theme == ThemeMode.dark
+                            ? 'assets/students_dark.svg'
+                            : 'assets/students_final.svg',
+                        width: MediaQuery.of(context).size.width,
+                      ),
+                    );
+                  }),
+                  timetableSnapshot.when(
+                    data: (snapshot) {
+                      if (snapshot.docs.isEmpty) {
+                        return const Center(
+                          child: Text("Nothing here"),
+                        );
+                      }
+                      var data = snapshot.docs[0];
+
+                      return Positioned(
+                        left: MediaQuery.of(context).size.width * 0.05,
+                        top: MediaQuery.of(context).size.height * 0.10,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Next Class',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 20,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              "${data["day"]}, \n${data["startTime"]}",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 20,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.5,
+                              child: Text(
+                                data["subject"] ?? "",
+                                textAlign: TextAlign.start,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w300,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    loading: () => Positioned(
+                      left: MediaQuery.of(context).size.width * 0.05,
+                      top: MediaQuery.of(context).size.height * 0.10,
+                      child: Shimmer.fromColors(
+                        baseColor: Colors.grey.shade300,
+                        highlightColor: Colors.grey.shade100,
+                        child: DashBoardCard(
+                          color: Colors.green.shade50,
+                          subTitle: "Loading...",
+                          title: "Next Class",
+                        ),
+                      ),
+                    ),
+                    error: (e, stack) => const Text('Error fetching data'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              // Other Widgets and StreamBuilders
+              Padding(
+                padding: EdgeInsets.only(
+                    left: MediaQuery.of(context).size.width * 0.05,
+                    right: MediaQuery.of(context).size.width * 0.05),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        currenttimetableSnapshot.when(
+                          data: (snapshot) {
+                            if (snapshot.docs.isEmpty) {
                               return DashBoardCard(
                                 color: Colors.green.shade50,
                                 subTitle: "No Class",
                                 title: "Current Lecture",
                               );
-                            }
-                          }),
-                      StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('attendance')
-                              .where('branch', isEqualTo: student.branch)
-                              .where('presentStudents',
-                                  arrayContains: student.uid)
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            if (snapshot.data != null) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return Shimmer.fromColors(
-                                  baseColor: Colors.grey.shade300,
-                                  highlightColor: Colors.grey.shade100,
-                                  child: DashBoardCard(
-                                    color: Colors.blue.shade50,
-                                    subTitle: "75%",
-                                    title: "Total Lec Attended",
-                                  ),
-                                );
-                              }
-                              if (snapshot.hasError) {
-                                return const Text('Something went wrong');
-                              }
-                              if (snapshot.data!.docs.isEmpty) {
-                                return DashBoardCard(
-                                  color: Colors.blue.shade50,
-                                  subTitle: "0",
-                                  title: "Total Lec Attended",
-                                );
-                              }
-                              var data = snapshot.data?.docs[0];
-                              return DashBoardCard(
-                                color: Colors.blue.shade50,
-                                subTitle: "${data?["presentStudents"].length}",
-                                title: "Total Lec Attended",
-                              );
                             } else {
+                              var data = snapshot.docs[0];
                               return DashBoardCard(
-                                color: Colors.blue.shade50,
-                                subTitle: "0",
-                                title: "Total Attendance",
+                                color: Colors.green.shade50,
+                                subTitle: data["subject"] ?? "No Class",
+                                title: "Current Lecture",
                               );
                             }
-                          }),
-                    ],
-                  ),
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.015,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      DashBoardCard(
-                        color: Colors.purple.shade50,
-                        subTitle: "20%",
-                        title: "Total Attendance",
-                      ),
-                      DashBoardCard(
-                        color: Colors.pink.shade50,
-                        subTitle: "View All",
-                        title: "Notes",
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.020,
-                  ),
-                  Consumer(builder: (context, ref, child) {
-                    final theme = ref.watch(themeModeProvider);
-                    return Text(
+                          },
+                          loading: () => Shimmer.fromColors(
+                            baseColor: Colors.grey.shade300,
+                            highlightColor: Colors.grey.shade100,
+                            child: DashBoardCard(
+                              color: Colors.green.shade50,
+                              subTitle: "Loading...",
+                              title: "Current Lecture",
+                            ),
+                          ),
+                          error: (e, st) => DashBoardCard(
+                            color: Colors.red.shade50,
+                            subTitle: "Error loading class",
+                            title: "Current Lecture",
+                          ),
+                        ),
+                        DashBoardCard(
+                          color: Colors.blue.shade50,
+                          subTitle: "0",
+                          title: "Total Lec Attended",
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.015),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        DashBoardCard(
+                          color: Colors.purple.shade50,
+                          subTitle: "20%",
+                          title: "Total Attendance",
+                        ),
+                        DashBoardCard(
+                          color: Colors.pink.shade50,
+                          subTitle: "View All",
+                          title: "Notes",
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.020),
+                    Text(
                       "Notice",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
-                        color: theme == ThemeMode.dark
-                            ? Colors.white
-                            : Colors.black,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
-                    );
-                  }),
-                  StudNotice(mybranch: student.branch ?? ""),
-                ],
+                    ),
+                    student.when(
+                      data: (student) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Other widgets
+                            StudNotice(
+                                mybranch: student.branch ?? 'Default Branch'),
+                          ],
+                        );
+                      },
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (error, stack) =>
+                          Center(child: Text('Error: $error')),
+                    ),
+                  ],
+                ),
               ),
-            )
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -733,3 +580,82 @@ Future<void> logout(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
   prefs.setBool('isLoggedIn', false);
 }
+
+// Provider to fetch student data
+
+// Provider to fetch student data
+final studentProvider = FutureProvider<StudentModel>((ref) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    throw Exception("No user logged in");
+  }
+
+  try {
+    final doc = await FirebaseFirestore.instance
+        .collection('students')
+        .doc(user.uid)
+        .get();
+    if (doc.exists) {
+      return StudentModel.fromMap(doc.data()!);
+    } else {
+      throw Exception("Student data not found");
+    }
+  } catch (e) {
+    throw Exception("Failed to fetch student data: $e");
+  }
+});
+
+final timetableProvider =
+    StreamProvider.autoDispose.family<QuerySnapshot, String>((ref, day) {
+  final studentAsyncValue = ref.watch(studentProvider);
+
+  return studentAsyncValue.when(
+    data: (student) {
+      return FirebaseFirestore.instance
+          .collection('timetable')
+          .doc(student.currentYear ?? "")
+          .collection(student.branch ?? "")
+          .where('day', isEqualTo: day)
+          .where('index', isEqualTo: TimeUtils.getUpcomingRangeIndex())
+          .snapshots();
+    },
+    loading: () {
+      // Return an empty stream while loading
+      return const Stream.empty();
+    },
+    error: (error, stack) {
+      // Handle error and return a stream with an error
+      return Stream.error(error);
+    },
+  );
+});
+
+final currenttimetableProvider =
+    StreamProvider.autoDispose.family<QuerySnapshot, String>((ref, day) {
+  final studentAsyncValue = ref.watch(studentProvider);
+
+  return studentAsyncValue.when(
+    data: (student) {
+      // Ensure that the student object is not null
+      print("Current time range: ${TimeUtils.getCurrentRangeIndex()}");
+      print("upcoming time range: ${TimeUtils.getUpcomingRangeIndex()}");
+      return FirebaseFirestore.instance
+          .collection('timetable')
+          .doc(student.currentYear ?? "")
+          .collection(student.branch ?? "")
+          .where('day', isEqualTo: day)
+          .where('index', isEqualTo: TimeUtils.getCurrentRangeIndex())
+          .snapshots();
+    },
+    loading: () {
+      // Return an empty stream while loading
+      return const Stream.empty();
+    },
+    error: (error, stack) {
+      // Handle error and return a stream with an error
+      return Stream.error(error);
+    },
+  );
+});
+
+final selectedIndexProvider = StateProvider<int>((ref) => 0);

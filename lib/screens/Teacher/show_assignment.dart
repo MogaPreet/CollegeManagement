@@ -23,7 +23,6 @@ class _ShowAssignmentState extends State<ShowAssignment> {
   );
   @override
   Widget build(BuildContext context) {
-    TextEditingController title = TextEditingController();
     TextEditingController desc = TextEditingController();
     final _formKey = GlobalKey<FormState>();
     CollectionReference assignment =
@@ -159,7 +158,7 @@ class _ShowAssignmentState extends State<ShowAssignment> {
                                   documentSnapshot["desc"] ?? "",
                                   style: Theme.of(context)
                                       .textTheme
-                                      .bodyText2
+                                      .bodyMedium
                                       ?.copyWith(fontSize: 16),
                                 ),
                               ),

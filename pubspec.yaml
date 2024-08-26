@@ -50,7 +50,7 @@ dependencies:
   syncfusion_flutter_datepicker: ^20.4.41
   firebase_storage: ^11.0.10
   file_picker: ^5.2.4
-  bottom_navy_bar: ^6.0.0
+  bottom_navy_bar: ^6.1.0
   uuid: ^3.0.7
   flutter_file_view: ^2.2.1
   url_launcher: ^6.1.10
@@ -62,6 +62,10 @@ dependencies:
   google_fonts: 6.1.0
   shimmer: ^3.0.0
   flutter_native_splash: ^2.4.0
+  google_ml_vision: ^0.0.8
+  image_picker: ^1.1.2
+  fl_chart: ^0.68.0
+ 
 
  
  

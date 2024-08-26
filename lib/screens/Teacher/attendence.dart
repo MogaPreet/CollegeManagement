@@ -28,7 +28,7 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
   CollectionReference students =
       FirebaseFirestore.instance.collection('students');
 
-  List<bool> switchValues = List.generate(5, (index) => false);
+  List<bool> switchValues = List.generate(85, (index) => false);
 
   void toggleSwitches(bool value) {
     setState(() {
@@ -213,72 +213,71 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
                     },
                   ),
                   Spacer(),
-                  if (selectedBranch.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: Consumer(builder: (context, refX, child) {
-                          return ElevatedButton(
-                            style: ButtonStyle(
-                              foregroundColor: MaterialStateProperty.all(
-                                Colors.black,
-                              ),
-                              backgroundColor: MaterialStateProperty.all(
-                                  Colors.green.shade50),
-                              shape: MaterialStateProperty.all(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Consumer(builder: (context, refX, child) {
+                        return ElevatedButton(
+                          style: ButtonStyle(
+                            foregroundColor: MaterialStateProperty.all(
+                              Colors.black,
+                            ),
+                            backgroundColor:
+                                MaterialStateProperty.all(Colors.green.shade50),
+                            shape: MaterialStateProperty.all(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            onPressed: () async {
-                              try {
-                                await FirebaseFirestore.instance
-                                    .collection('attendance')
-                                    .add({
-                                  'branch': selectedBranch,
-                                  'year': widget.currentYear,
-                                  'subject': widget.subject,
-                                  'date': Timestamp.now(),
-                                  'presentStudents': switchValues
-                                      .asMap()
-                                      .entries
-                                      .where((element) => element.value)
-                                      .map((e) => snapshot.data!.docs[e.key]
-                                          .get('uid')
-                                          .toString())
-                                      .toList(),
-                                });
-                                await generateExcelFile(
-                                  snapshot.data!.docs,
-                                  switchValues,
-                                );
-                              } catch (e) {
-                                // ignore: use_build_context_synchronously
-                                showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return AlertDialog(
-                                        title: const Text('Error'),
-                                        content: Text(e.toString()),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            child: const Text('OK'),
-                                          )
-                                        ],
-                                      );
-                                    });
-                              } finally {}
-                            },
-                            child: Text('Download Attandance'),
-                          );
-                        }),
-                      ),
-                    )
+                          ),
+                          onPressed: () async {
+                            try {
+                              await FirebaseFirestore.instance
+                                  .collection('attendance')
+                                  .add({
+                                'branch': selectedBranch,
+                                'year': widget.currentYear,
+                                'subject': widget.subject,
+                                'date': Timestamp.now(),
+                                'presentStudents': switchValues
+                                    .asMap()
+                                    .entries
+                                    .where((element) => element.value)
+                                    .map((e) => snapshot.data!.docs[e.key]
+                                        .get('uid')
+                                        .toString())
+                                    .toList(),
+                              });
+                              await generateExcelFile(
+                                snapshot.data!.docs,
+                                switchValues,
+                              );
+                            } catch (e) {
+                              // ignore: use_build_context_synchronously
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text('Error'),
+                                      content: Text(e.toString()),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('OK'),
+                                        )
+                                      ],
+                                    );
+                                  });
+                            } finally {}
+                          },
+                          child: Text('Download Attandance'),
+                        );
+                      }),
+                    ),
+                  )
                 ],
               ),
             );
