@@ -7,6 +7,7 @@ import 'package:cms/screens/Teacher/conditionalRoute.dart';
 import 'package:cms/screens/Teacher/fetch_student.dart';
 import 'package:cms/screens/Teacher/notice.dart';
 import 'package:cms/screens/Teacher/show_assignment.dart';
+import 'package:cms/screens/Teacher/text_to_speech/text_to_speech.dart';
 import 'package:cms/screens/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -169,6 +170,13 @@ class _TeacherHomeState extends State<TeacherHome> {
       ),
       appBar: AppBar(
         actions: [
+          IconButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (c) {
+                  return LectureRecorderScreen();
+                }));
+              },
+              icon: Icon(Icons.record_voice_over)),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {

@@ -1,5 +1,7 @@
 import 'package:cms/models/event.dart';
+import 'package:cms/screens/Student/widgets/dashboard_data.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
 class EventCard extends StatelessWidget {
   final Event event;
@@ -27,7 +29,7 @@ class EventCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               child: ShaderMask(
                 shaderCallback: (rect) {
-                  return LinearGradient(
+                  return const LinearGradient(
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                     colors: [
@@ -41,6 +43,23 @@ class EventCard extends StatelessWidget {
                   "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
                   fit: BoxFit.fill,
                   width: double.infinity,
+                  loadingBuilder: (BuildContext context, Widget child,
+                      ImageChunkEvent? loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: Shimmer.fromColors(
+                        baseColor: Colors.grey.shade300,
+                        highlightColor: Colors.grey.shade100,
+                        child: Container(
+                          width: double.infinity,
+                          height: size.height * 0.25,
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),

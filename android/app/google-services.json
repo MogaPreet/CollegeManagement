@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "208599616375",
+    "firebase_url": "https://cmsrgit-default-rtdb.firebaseio.com",
     "project_id": "cmsrgit",
     "storage_bucket": "cmsrgit.appspot.com"
   },
@@ -10,6 +11,43 @@
         "mobilesdk_app_id": "1:208599616375:android:33aeea3ffb6ec7cd8baf72",
         "android_client_info": {
           "package_name": "com.example.cms"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "208599616375-1gi3osjpfc0l5nq1tjtev7rek2587hjf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.cms",
+            "certificate_hash": "d56c84a32200cf5803a9f2bcb5cd76398f8ac0dc"
+          }
+        },
+        {
+          "client_id": "208599616375-j1hhqkds1fmu65beehlv15llrbgpf7mp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQ29fnMBpUBA9frcPey2oX-0kw6Wc6Gig"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "208599616375-j1hhqkds1fmu65beehlv15llrbgpf7mp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:208599616375:android:52cd0da6616138db8baf72",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
         }
       },
       "oauth_client": [

@@ -2,7 +2,7 @@ class TimeUtils {
   static int getUpcomingRangeIndex() {
     List<TimeRange> timeRanges = TimeUtils.getTimeRanges();
 
-    for (int i = 0; i < timeRanges.length;) {
+    for (int i = 0; i <= timeRanges.length; i++) {
       return getCurrentRangeIndex() + 1;
     }
     return 0;
@@ -12,12 +12,13 @@ class TimeUtils {
     DateTime now = DateTime.now();
     List<TimeRange> timeRanges = TimeUtils.getTimeRanges();
     print(timeRanges.length);
-    for (int i = 0; i >= timeRanges.length; i++) {
+    for (int i = 1; i < timeRanges.length; i++) {
       if (now.isAfter(timeRanges[i].start) && now.isBefore(timeRanges[i].end)) {
-        // print(timeRanges[i].start);
-        // print(timeRanges[i].end);
-        // print(now);
-        return i;
+        print(timeRanges[i].start);
+        print(timeRanges[i].end);
+        print(now);
+        print(i);
+        return i + 1;
       }
     }
     return 0;

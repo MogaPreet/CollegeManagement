@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cms/main.dart';
 import 'package:cms/models/event.dart';
 import 'package:cms/screens/Student/events/add_expense.dart';
 import 'package:cms/screens/Student/events/expense_dash.dart';
@@ -15,73 +16,88 @@ class EventListPage extends ConsumerWidget {
     final eventAsyncValue = ref.watch(eventsProvider);
     final studentAsyncValue = ref.watch(studentProvider);
     Size size = MediaQuery.of(context).size;
-    return eventAsyncValue.when(
-      data: (events) {
-        if (events.isEmpty) {
-          return const Center(
-            child: Text('No events available'),
-          );
-        }
-        return ListView.builder(
-          itemCount: events.length,
-          itemBuilder: (context, index) {
-            return Stack(
-              alignment: Alignment.topRight,
-              children: [
-                EventCard(event: events[index]),
-                studentAsyncValue.when(
-                  data: (student) {
-                    if (events[index].teamMembers.contains(student.uid)) {
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          right: size.width * 0.05,
-                          top: size.width * 0.02,
-                        ),
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return ExpenseDashboard(
-                                student,
-                                events[index].teamMembers,
-                                eventId: events[index].id,
-                              );
-                            }));
-                          },
-                          child: Chip(
-                            shadowColor: Colors.grey,
-                            color: WidgetStatePropertyAll(
-                                Colors.white.withOpacity(.6)),
-                            avatar: Icon(
-                              Icons.event_note_outlined,
-                              color: Colors.green.withOpacity(.6),
-                            ),
-                            label: Text(
-                              'Manage',
-                              style: TextStyle(
-                                color: Colors.green.withOpacity(.6),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            elevation: 2,
-                          ),
-                        ),
-                      );
-                    }
-                    return const SizedBox();
-                  },
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stackTrace) =>
-                      Center(child: Text('Error: $error')),
-                )
-              ],
+    Future<void> refreshEvents() async {
+      // Invalidate the providers to trigger a refresh
+      ref.invalidate(studentProvider);
+      ref.invalidate(eventsProvider);
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+
+    return RefreshIndicator(
+      onRefresh: refreshEvents,
+      child: eventAsyncValue.when(
+        data: (events) {
+          if (events.isEmpty) {
+            return const Center(
+              child: Text('No events available'),
             );
-          },
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Center(child: Text('Error: $error')),
+          }
+          return ListView.builder(
+            itemCount: events.length,
+            itemBuilder: (context, index) {
+              final theme = ref.watch(themeModeProvider);
+              return Stack(
+                alignment: Alignment.topRight,
+                children: [
+                  EventCard(event: events[index]),
+                  studentAsyncValue.when(
+                    data: (student) {
+                      if (events[index].teamMembers.contains(student.uid)) {
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            right: size.width * 0.05,
+                            top: size.width * 0.02,
+                          ),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return ExpenseDashboard(
+                                  student,
+                                  events[index].teamMembers,
+                                  eventId: events[index].id,
+                                );
+                              }));
+                            },
+                            child: Chip(
+                              shadowColor: Colors.grey,
+                              color: WidgetStatePropertyAll(
+                                  Colors.white.withOpacity(.6)),
+                              avatar: Icon(
+                                Icons.event_note_outlined,
+                                color: theme == ThemeMode.dark
+                                    ? Colors.white
+                                    : Colors.green.withOpacity(.6),
+                              ),
+                              label: Text(
+                                'Manage',
+                                style: TextStyle(
+                                  color: theme == ThemeMode.dark
+                                      ? Colors.white
+                                      : Colors.green.withOpacity(.6),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              elevation: 2,
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox();
+                    },
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (error, stackTrace) =>
+                        Center(child: Text('Error: $error')),
+                  )
+                ],
+              );
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stackTrace) => Center(child: Text('Error: $error')),
+      ),
     );
   }
 }

@@ -82,13 +82,13 @@ class _StudentHomePageState extends ConsumerState<StudentHomePage> {
   String showAppBarText(int currentIndex) {
     switch (currentIndex) {
       case 0:
-        return "Hey, ${student.firstName ?? ""}";
+        return "Hey, ${student.firstName ?? ""} 👋";
       case 1:
-        return "Assignment";
+        return "Assignment 🎒";
       case 2:
-        return "Events";
+        return "Events 🎉";
       case 3:
-        return 'Profile';
+        return 'Profile 🧑🏻‍🎓';
       default:
         return "Home";
     }
@@ -97,6 +97,7 @@ class _StudentHomePageState extends ConsumerState<StudentHomePage> {
   @override
   Widget build(BuildContext context) {
     final selectedIndex = ref.watch(selectedIndexProvider);
+    final theme = ref.watch(themeModeProvider);
     List<Widget> pages = <Widget>[
       const Home(),
       StudentAssignmentCard(
@@ -264,8 +265,10 @@ class _StudentHomePageState extends ConsumerState<StudentHomePage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,
         backgroundColor: Colors.transparent,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor:
+            theme == ThemeMode.dark ? Colors.white : Colors.black,
+        unselectedItemColor:
+            theme == ThemeMode.dark ? Colors.grey.shade700 : Colors.grey,
         elevation: 0,
         showSelectedLabels: false,
         showUnselectedLabels: false,
@@ -370,6 +373,7 @@ class Home extends ConsumerWidget {
       await Future.delayed(const Duration(milliseconds: 500));
     }
 
+    final theme = ref.watch(themeModeProvider);
     return RefreshIndicator(
       onRefresh: refreshTimetable,
       child: SingleChildScrollView(
@@ -382,7 +386,6 @@ class Home extends ConsumerWidget {
               Stack(
                 children: [
                   Consumer(builder: (context, ref, child) {
-                    final theme = ref.watch(themeModeProvider);
                     return Container(
                       margin: EdgeInsets.only(
                           left: MediaQuery.of(context).size.width * 0.1),
@@ -414,10 +417,9 @@ class Home extends ConsumerWidget {
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 20,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge
-                                    ?.color,
+                                color: theme == ThemeMode.dark
+                                    ? Colors.white
+                                    : Colors.black,
                               ),
                             ),
                             const SizedBox(height: 10),
@@ -426,10 +428,9 @@ class Home extends ConsumerWidget {
                               style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 20,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge
-                                    ?.color,
+                                color: theme == ThemeMode.dark
+                                    ? Colors.white
+                                    : Colors.black,
                               ),
                             ),
                             const SizedBox(height: 10),
@@ -440,10 +441,9 @@ class Home extends ConsumerWidget {
                                 textAlign: TextAlign.start,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w300,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge
-                                      ?.color,
+                                  color: theme == ThemeMode.dark
+                                      ? Colors.white
+                                      : Colors.black,
                                 ),
                               ),
                             ),
@@ -575,13 +575,15 @@ class Home extends ConsumerWidget {
 
 Future<void> logout(BuildContext context) async {
   await FirebaseAuth.instance.signOut();
-  Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const LoginScreen()));
   final prefs = await SharedPreferences.getInstance();
   prefs.setBool('isLoggedIn', false);
+  Navigator.of(context).pushAndRemoveUntil(
+    MaterialPageRoute(
+      builder: (context) => const LoginScreen(),
+    ),
+    (x) => false,
+  );
 }
-
-// Provider to fetch student data
 
 // Provider to fetch student data
 final studentProvider = FutureProvider<StudentModel>((ref) async {

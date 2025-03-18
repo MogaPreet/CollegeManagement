@@ -1,3 +1,4 @@
+import 'package:cms/main.dart';
 import 'package:cms/models/expense.dart';
 import 'package:cms/models/user.dart';
 import 'package:cms/screens/Student/events/add_expense.dart';
@@ -21,6 +22,15 @@ class ExpenseDashboard extends ConsumerWidget {
     final expensesAsync = ref.watch(expensesProvider(eventId));
     final totalExpenses = ref.watch(totalExpensesProvider(eventId));
     final teamMembers = ref.watch(teamMemberProvider(teamMem));
+    final theme = ref.watch(themeModeProvider);
+    Future<void> refreshDashboard() async {
+      // Invalidate the providers to trigger a refresh
+      ref.invalidate(expensesProvider);
+      ref.invalidate(totalExpensesProvider);
+      ref.invalidate(teamMemberProvider);
+
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -44,13 +54,13 @@ class ExpenseDashboard extends ConsumerWidget {
                                   );
                                 });
                           },
-                          loading: () => CircularProgressIndicator(),
+                          loading: () => const CircularProgressIndicator(),
                           error: (error, stack) => Text('Error: $error'),
                         ),
                       );
                     });
               },
-              icon: Icon(Icons.person_2_outlined))
+              icon: const Icon(Icons.person_2_outlined))
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -69,70 +79,80 @@ class ExpenseDashboard extends ConsumerWidget {
           );
         },
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Total Expenses
-            Text(
-              'Total Expenses',
-              style: Theme.of(context).textTheme.headlineLarge,
-            ),
-            Text(
-              '₹${totalExpenses.toStringAsFixed(2)}',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 20),
+      body: RefreshIndicator(
+        onRefresh: refreshDashboard,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Total Expenses
+              Text(
+                'Total Expenses',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color:
+                          theme == ThemeMode.dark ? Colors.white : Colors.black,
+                    ),
+              ),
+              Text(
+                '₹${totalExpenses.toStringAsFixed(2)}',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color:
+                          theme == ThemeMode.dark ? Colors.white : Colors.black,
+                    ),
+              ),
+              const SizedBox(height: 20),
 
-            // Expenses Chart
-            Expanded(
-              flex: 2,
-              child: expensesAsync.when(
-                data: (e) => ExpenseChart(expenses: e),
-                loading: () => Shimmer.fromColors(
-                  baseColor: Colors.grey.shade300,
-                  highlightColor: Colors.grey.shade100,
-                  child: Container(
-                    padding: EdgeInsets.all(16),
-                    height: MediaQuery.of(context).size.width * 0.44,
-                    width: double.infinity,
-                    alignment: Alignment.centerLeft,
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(8),
+              // Expenses Chart
+              Expanded(
+                flex: 2,
+                child: expensesAsync.when(
+                  data: (e) => ExpenseChart(expenses: e),
+                  loading: () => Shimmer.fromColors(
+                    baseColor: Colors.grey.shade300,
+                    highlightColor: Colors.grey.shade100,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      height: MediaQuery.of(context).size.width * 0.44,
+                      width: double.infinity,
+                      alignment: Alignment.centerLeft,
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
+                  error: (error, stack) => Text('Error: $error'),
                 ),
-                error: (error, stack) => Text('Error: $error'),
               ),
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Filterable List of Expenses
-            Expanded(
-              flex: 3,
-              child: expensesAsync.when(
-                data: (expenses) => ExpensesList(expenses: expenses),
-                loading: () => Shimmer.fromColors(
-                  baseColor: Colors.grey.shade300,
-                  highlightColor: Colors.grey.shade100,
-                  child: Container(
-                    padding: EdgeInsets.all(16),
-                    height: MediaQuery.of(context).size.width * 0.60,
-                    width: double.infinity,
-                    alignment: Alignment.centerLeft,
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(8),
+              // Filterable List of Expenses
+              // FilterBar(),
+              Expanded(
+                flex: 3,
+                child: expensesAsync.when(
+                  data: (expenses) => ExpensesList(expenses: expenses),
+                  loading: () => Shimmer.fromColors(
+                    baseColor: Colors.grey.shade300,
+                    highlightColor: Colors.grey.shade100,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      height: MediaQuery.of(context).size.width * 0.60,
+                      width: double.infinity,
+                      alignment: Alignment.centerLeft,
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
+                  error: (error, stack) => Text('Error: $error'),
                 ),
-                error: (error, stack) => Text('Error: $error'),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -170,7 +190,7 @@ class ExpenseChart extends StatelessWidget {
     }).toList();
 
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(8.0),
       child: BarChart(
         BarChartData(
           maxY: (dailyExpenses.values.isNotEmpty)
@@ -181,11 +201,12 @@ class ExpenseChart extends StatelessWidget {
           titlesData: FlTitlesData(
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
+                reservedSize: 30,
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
                   return Text(
                     value.toString(),
-                    style: const TextStyle(color: Colors.black, fontSize: 6),
+                    style: TextStyle(color: Colors.redAccent, fontSize: 6),
                   );
                 },
               ),
@@ -223,14 +244,35 @@ class ExpensesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    return ListView.separated(
+      separatorBuilder: (context, index) {
+        return Divider();
+      },
       itemCount: expenses.length,
       itemBuilder: (context, index) {
         final expense = expenses[index];
         return ListTile(
+          onTap: () {
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    content: Image.network(
+                      expense.billImageUrl ?? "",
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                          child: Text(
+                            "No Image uploaded!",
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                });
+          },
           title: Text(expense.description),
           subtitle: Text(
-            'Amount: \₹${expense.amount.toStringAsFixed(2)} - By: ${expense.memberName}',
+            '₹${expense.amount.toStringAsFixed(2)} - By: ${expense.memberName}',
           ),
           trailing: Text(
             expense.timestamp.toLocal().toString().split(' ')[0],

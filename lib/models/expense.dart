@@ -10,6 +10,7 @@ class Expense {
   final String memberId;
   final String memberName;
   final DateTime timestamp;
+  final String? billImageUrl;
 
   Expense({
     required this.description,
@@ -17,6 +18,7 @@ class Expense {
     required this.memberId,
     required this.memberName,
     required this.timestamp,
+    this.billImageUrl,
   });
 
   factory Expense.fromMap(Map<String, dynamic> data) {
@@ -26,6 +28,7 @@ class Expense {
       memberId: data['memberId'] ?? '',
       memberName: data['memberName'] ?? 'Unknown',
       timestamp: (data['timestamp'] as Timestamp).toDate(),
+      billImageUrl: data['billImageUrl'] ?? '',
     );
   }
 }

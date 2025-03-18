@@ -21,7 +21,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
   DateTime? _selectedDate;
   List<String> _selectedTeamMembers = [];
   String _selectedYear = 'First Year'; // Default selected year
-
+  bool isLoading = false;
   @override
   Widget build(BuildContext context) {
     final studentsProvider = ref.watch(studentsListProvider(_selectedYear));
@@ -208,7 +208,9 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                     backgroundColor: _selectedDate != null
                         ? Colors.green.withOpacity(.8)
                         : Colors.green.withOpacity(.5)),
-                child: const Text('Create Event'),
+                child: isLoading
+                    ? CircularProgressIndicator()
+                    : const Text('Create Event'),
               ),
             ],
           ),
@@ -221,6 +223,9 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
     if (_formKey.currentState!.validate() && _selectedDate != null) {
       Uuid uid = const Uuid();
       var id = uid.v4();
+      setState(() {
+        isLoading = true;
+      });
       try {
         await FirebaseFirestore.instance.collection('events').doc(id).set({
           'id': id,
@@ -231,7 +236,9 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
           'time': _timeController.text,
           'teamMembers': _selectedTeamMembers,
         });
-
+        setState(() {
+          isLoading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Event created successfully!')),
         );
@@ -240,6 +247,10 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to create event: $e')),
         );
+      } finally {
+        setState(() {
+          isLoading = false;
+        });
       }
     }
   }

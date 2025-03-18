@@ -9,7 +9,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+      apiKey: 'AIzaSyCQ29fnMBpUBA9frcPey2oX-0kw6Wc6Gig',
+      appId: '1:208599616375:android:33aeea3ffb6ec7cd8baf72',
+      messagingSenderId: '208599616375',
+      projectId: 'cmsrgit',
+      databaseURL: 'https://cmsrgit-default-rtdb.firebaseio.com',
+      storageBucket: 'cmsrgit.appspot.com',
+    ),
+  );
   final prefs = await SharedPreferences.getInstance();
   final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
   final isTeacher = prefs.getBool('isTeacher') ?? false;
