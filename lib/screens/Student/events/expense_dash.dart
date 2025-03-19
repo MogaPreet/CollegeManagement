@@ -23,7 +23,8 @@ class ExpenseDashboard extends ConsumerStatefulWidget {
   ConsumerState<ExpenseDashboard> createState() => _ExpenseDashboardState();
 }
 
-class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with SingleTickerProviderStateMixin {
+class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard>
+    with SingleTickerProviderStateMixin {
   TabController? _tabController;
   String? _eventBudget;
   double _estimatedTotalBudget = 0;
@@ -51,16 +52,16 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
     setState(() {
       _loadingBudget = true;
     });
-    
+
     try {
       final eventDoc = await FirebaseFirestore.instance
           .collection('events')
           .doc(widget.eventId)
           .get();
-      
+
       if (eventDoc.exists) {
         final budgetText = eventDoc.data()?['estimatedBudget'] as String?;
-        
+
         setState(() {
           _eventBudget = budgetText;
           if (budgetText != null) {
@@ -81,27 +82,27 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
       });
     }
   }
-  
+
   // Extract rough budget total from the budget text
   double _extractEstimatedTotal(String budgetText) {
     if (budgetText.isEmpty) return 0;
-    
+
     // Look for "Total Estimated Budget: ₹" pattern
     RegExp totalRegex = RegExp(r'Total Estimated Budget:.*?₹(\d+[,\d]*)');
     final match = totalRegex.firstMatch(budgetText);
-    
+
     if (match != null && match.groupCount >= 1) {
       final totalString = match.group(1)?.replaceAll(',', '');
       return double.tryParse(totalString ?? '') ?? 0;
     }
-    
+
     return 0;
   }
-  
+
   // Extract category budgets from the budget text
   Map<String, double> _extractCategoryBudgets(String budgetText) {
     Map<String, double> result = {};
-    
+
     // Define patterns for different categories
     final patterns = {
       'Food and Beverages': RegExp(r'Food and Beverages:.*?₹(\d+[,\d]*)'),
@@ -112,7 +113,7 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
       'Transportation': RegExp(r'Transportation:.*?₹(\d+[,\d]*)'),
       'Miscellaneous': RegExp(r'Miscellaneous:.*?₹(\d+[,\d]*)')
     };
-    
+
     // Extract amounts for each category
     patterns.forEach((category, pattern) {
       final match = pattern.firstMatch(budgetText);
@@ -124,7 +125,7 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
         }
       }
     });
-    
+
     return result;
   }
 
@@ -144,9 +145,10 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
     final totalExpenses = ref.watch(totalExpensesProvider(widget.eventId));
     final teamMembers = ref.watch(teamMemberProvider(widget.teamMem));
     final theme = ref.watch(themeModeProvider);
-    
+
     // Determine if we're over budget
-    bool isOverBudget = _estimatedTotalBudget > 0 && totalExpenses > _estimatedTotalBudget;
+    bool isOverBudget =
+        _estimatedTotalBudget > 0 && totalExpenses > _estimatedTotalBudget;
 
     return Scaffold(
       appBar: AppBar(
@@ -165,76 +167,79 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
         ),
         actions: [
           IconButton(
-            tooltip: 'Team Members',
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return Dialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.people),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Team Members',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const Spacer(),
-                                IconButton(
-                                  icon: const Icon(Icons.close),
-                                  onPressed: () => Navigator.pop(context),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Divider(),
-                          Container(
-                            constraints: BoxConstraints(
-                              maxHeight: MediaQuery.of(context).size.height * 0.5,
-                            ),
-                            child: teamMembers.when(
-                              data: (student) {
-                                return ListView.builder(
-                                  shrinkWrap: true,
-                                  itemCount: student.length,
-                                  itemBuilder: (context, i) {
-                                    return ListTile(
-                                      leading: CircleAvatar(
-                                        child: Text(student[i].firstName?[0] ?? '?'),
-                                      ),
-                                      title: Text(student[i].firstName ?? ""),
-                                      subtitle: Text(student[i].currentYear ?? ""),
-                                    );
-                                  },
-                                );
-                              },
-                              loading: () => const Center(child: CircularProgressIndicator()),
-                              error: (error, stack) => Text('Error: $error'),
-                            ),
-                          ),
-                        ],
+              tooltip: 'Team Members',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return Dialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                    ),
-                  );
-                },
-              );
-            },
-            icon: const Icon(Icons.people_outline)
-          ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.people),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Team Members',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: const Icon(Icons.close),
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Divider(),
+                            Container(
+                              constraints: BoxConstraints(
+                                maxHeight:
+                                    MediaQuery.of(context).size.height * 0.5,
+                              ),
+                              child: teamMembers.when(
+                                data: (student) {
+                                  return ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: student.length,
+                                    itemBuilder: (context, i) {
+                                      return ListTile(
+                                        leading: CircleAvatar(
+                                          child: Text(
+                                              student[i].firstName?[0] ?? '?'),
+                                        ),
+                                        title: Text(student[i].firstName ?? ""),
+                                        subtitle:
+                                            Text(student[i].currentYear ?? ""),
+                                      );
+                                    },
+                                  );
+                                },
+                                loading: () => const Center(
+                                    child: CircularProgressIndicator()),
+                                error: (error, stack) => Text('Error: $error'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+              icon: const Icon(Icons.people_outline)),
           if (_eventBudget != null)
             IconButton(
               tooltip: 'View Budget Plan',
@@ -251,7 +256,8 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
             context,
             MaterialPageRoute(
               builder: (context) {
-                return AddExpensePage(eventId: widget.eventId, student: widget.student);
+                return AddExpensePage(
+                    eventId: widget.eventId, student: widget.student);
               },
             ),
           ).then((_) => refreshDashboard());
@@ -269,7 +275,7 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
                 _buildBudgetStatusCard(totalExpenses, theme),
                 const SizedBox(height: 20),
               ],
-              
+
               // Expense stats
               Row(
                 children: [
@@ -300,89 +306,108 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Charts section
               Expanded(
-                flex: 2,
                 child: expensesAsync.when(
                   data: (expenses) {
                     if (expenses.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.bar_chart, size: 64, color: Colors.grey),
-                            SizedBox(height: 16),
-                            Text(
-                              'No expenses recorded yet',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
+                      return const Center(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.bar_chart,
+                                  size: 64, color: Colors.grey),
+                              SizedBox(height: 16),
+                              Text(
+                                'No expenses recorded yet',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     }
-                    
-                    return Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: TabBarView(
-                          controller: _tabController,
-                          children: [
-                            // Daily Chart
-                            ExpenseChart(
-                              expenses: expenses,
-                              periodType: PeriodType.daily,
-                              theme: theme,
+
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxHeight: constraints.maxHeight,
+                              ),
+                              child: TabBarView(
+                                controller: _tabController,
+                                children: [
+                                  // Daily Chart
+                                  SingleChildScrollView(
+                                    child: ExpenseChart(
+                                      expenses: expenses,
+                                      periodType: PeriodType.daily,
+                                      theme: theme,
+                                    ),
+                                  ),
+
+                                  // 6 Month Chart
+                                  SingleChildScrollView(
+                                    child: ExpenseChart(
+                                      expenses: expenses,
+                                      periodType: PeriodType.sixMonths,
+                                      theme: theme,
+                                    ),
+                                  ),
+
+                                  // 1 Year Chart
+                                  SingleChildScrollView(
+                                    child: ExpenseChart(
+                                      expenses: expenses,
+                                      periodType: PeriodType.yearly,
+                                      theme: theme,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            
-                            // 6 Month Chart
-                            ExpenseChart(
-                              expenses: expenses,
-                              periodType: PeriodType.sixMonths,
-                              theme: theme,
-                            ),
-                            
-                            // 1 Year Chart
-                            ExpenseChart(
-                              expenses: expenses,
-                              periodType: PeriodType.yearly,
-                              theme: theme,
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (error, stack) => Center(
                     child: Text('Error loading chart: $error'),
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Category distribution
               expensesAsync.maybeWhen(
                 data: (expenses) {
                   if (expenses.isEmpty) return const SizedBox();
-                  
+
                   // Group expenses by category
                   Map<String, double> categoryTotals = {};
                   for (var expense in expenses) {
                     final category = expense.category ?? 'Other';
-                    categoryTotals[category] = (categoryTotals[category] ?? 0) + expense.amount;
+                    categoryTotals[category] =
+                        (categoryTotals[category] ?? 0) + expense.amount;
                   }
-                  
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -398,9 +423,11 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
                           children: categoryTotals.entries.map((entry) {
                             final category = entry.key;
                             final amount = entry.value;
-                            final categoryBudget = _categoryBudgets[category] ?? 0;
-                            final isOverCategoryBudget = categoryBudget > 0 && amount > categoryBudget;
-                            
+                            final categoryBudget =
+                                _categoryBudgets[category] ?? 0;
+                            final isOverCategoryBudget =
+                                categoryBudget > 0 && amount > categoryBudget;
+
                             return Container(
                               margin: const EdgeInsets.only(right: 8),
                               padding: const EdgeInsets.symmetric(
@@ -408,11 +435,12 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
                                 vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                color: (categoryColors[category] ?? Colors.grey).withOpacity(0.2),
+                                color: (categoryColors[category] ?? Colors.grey)
+                                    .withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(20),
                                 border: isOverCategoryBudget
-                                  ? Border.all(color: Colors.red, width: 1)
-                                  : null,
+                                    ? Border.all(color: Colors.red, width: 1)
+                                    : null,
                               ),
                               child: Row(
                                 children: [
@@ -425,7 +453,8 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
                                   Text(
                                     '$category: ₹${amount.toStringAsFixed(0)}',
                                     style: TextStyle(
-                                      color: categoryColors[category] ?? Colors.grey,
+                                      color: categoryColors[category] ??
+                                          Colors.grey,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -440,9 +469,9 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
                 },
                 orElse: () => const SizedBox(),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Expenses list header
               Row(
                 children: [
@@ -454,12 +483,11 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
                   // Filter dropdown could go here
                 ],
               ),
-              
+
               const SizedBox(height: 8),
-              
+
               // Expenses list
               Expanded(
-                flex: 3,
                 child: expensesAsync.when(
                   data: (expenses) {
                     if (expenses.isEmpty) {
@@ -477,7 +505,8 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
                       categoryColors: categoryColors,
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (error, stack) => Center(
                     child: Text('Error: $error'),
                   ),
@@ -489,19 +518,19 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
       ),
     );
   }
-  
+
   Widget _buildBudgetStatusCard(double totalExpenses, ThemeMode theme) {
     final remaining = _estimatedTotalBudget - totalExpenses;
     final percentSpent = totalExpenses / _estimatedTotalBudget;
     final isOverBudget = remaining < 0;
-    
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      color: isOverBudget 
-          ? Colors.red.shade50 
+      color: isOverBudget
+          ? Colors.red.shade50
           : (percentSpent > 0.8 ? Colors.amber.shade50 : Colors.green.shade50),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -513,10 +542,14 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
                 Icon(
                   isOverBudget
                       ? Icons.warning_amber_rounded
-                      : (percentSpent > 0.8 ? Icons.info_outline : Icons.check_circle_outline),
+                      : (percentSpent > 0.8
+                          ? Icons.info_outline
+                          : Icons.check_circle_outline),
                   color: isOverBudget
                       ? Colors.red
-                      : (percentSpent > 0.8 ? Colors.amber.shade800 : Colors.green),
+                      : (percentSpent > 0.8
+                          ? Colors.amber.shade800
+                          : Colors.green),
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -528,7 +561,9 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
                     fontWeight: FontWeight.bold,
                     color: isOverBudget
                         ? Colors.red
-                        : (percentSpent > 0.8 ? Colors.amber.shade800 : Colors.green),
+                        : (percentSpent > 0.8
+                            ? Colors.amber.shade800
+                            : Colors.green),
                   ),
                 ),
               ],
@@ -593,7 +628,9 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
                 fontSize: 12,
                 color: isOverBudget
                     ? Colors.red
-                    : (percentSpent > 0.8 ? Colors.amber.shade800 : Colors.green),
+                    : (percentSpent > 0.8
+                        ? Colors.amber.shade800
+                        : Colors.green),
               ),
             ),
             if (isOverBudget)
@@ -612,7 +649,7 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
       ),
     );
   }
-  
+
   Widget _buildStatCard(
     BuildContext context,
     String title,
@@ -634,7 +671,8 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
               title,
               style: TextStyle(
                 fontSize: 14,
-                color: theme == ThemeMode.dark ? Colors.white70 : Colors.black54,
+                color:
+                    theme == ThemeMode.dark ? Colors.white70 : Colors.black54,
               ),
             ),
             const SizedBox(height: 8),
@@ -651,11 +689,11 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
       ),
     );
   }
-  
+
   // Show the full budget plan
   void _showBudgetPlan(BuildContext context) {
     if (_eventBudget == null) return;
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -665,9 +703,9 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
         minChildSize: 0.5,
         maxChildSize: 0.95,
         builder: (_, scrollController) => Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: const BorderRadius.only(
+            borderRadius: BorderRadius.only(
               topLeft: Radius.circular(25),
               topRight: Radius.circular(25),
             ),
@@ -723,7 +761,7 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
       ),
     );
   }
-  
+
   @override
   void dispose() {
     _tabController?.dispose();
@@ -731,11 +769,7 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard> with Single
   }
 }
 
-enum PeriodType {
-  daily,
-  sixMonths,
-  yearly
-}
+enum PeriodType { daily, sixMonths, yearly }
 
 class ExpenseChart extends StatelessWidget {
   final List<Expense> expenses;
@@ -743,7 +777,7 @@ class ExpenseChart extends StatelessWidget {
   final ThemeMode theme;
 
   const ExpenseChart({
-    Key? key, 
+    Key? key,
     required this.expenses,
     required this.periodType,
     required this.theme,
@@ -767,7 +801,7 @@ class ExpenseChart extends StatelessWidget {
     // Process data for chart
     Map<String, double> periodExpenses = {};
     final now = DateTime.now();
-    
+
     switch (periodType) {
       case PeriodType.daily:
         // Group by day for the past 30 days
@@ -780,7 +814,7 @@ class ExpenseChart extends StatelessWidget {
           }
         }
         break;
-        
+
       case PeriodType.sixMonths:
         // Group by month for the past 6 months
         for (var expense in expenses) {
@@ -792,7 +826,7 @@ class ExpenseChart extends StatelessWidget {
           }
         }
         break;
-        
+
       case PeriodType.yearly:
         // Group by quarter for the past year
         for (var expense in expenses) {
@@ -805,10 +839,10 @@ class ExpenseChart extends StatelessWidget {
         }
         break;
     }
-    
+
     // Sort the data chronologically
     final sortedEntries = periodExpenses.entries.toList();
-    
+
     if (periodType == PeriodType.daily || periodType == PeriodType.sixMonths) {
       // Sort logic for daily and monthly views
       sortedEntries.sort((a, b) {
@@ -821,7 +855,20 @@ class ExpenseChart extends StatelessWidget {
           return dateA.compareTo(dateB);
         } else {
           // Parse month names
-          final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          final months = [
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec'
+          ];
           return months.indexOf(a.key) - months.indexOf(b.key);
         }
       });
@@ -833,7 +880,7 @@ class ExpenseChart extends StatelessWidget {
         return quarterA - quarterB;
       });
     }
-    
+
     // Prepare bar chart data
     List<BarChartGroupData> barGroups = [];
     for (int i = 0; i < sortedEntries.length; i++) {
@@ -844,7 +891,8 @@ class ExpenseChart extends StatelessWidget {
           barRods: [
             BarChartRodData(
               toY: entry.value,
-              color: theme == ThemeMode.dark ? Colors.blueAccent : Colors.orange,
+              color:
+                  theme == ThemeMode.dark ? Colors.blueAccent : Colors.orange,
               width: 12, // Slimmer bars
               borderRadius: BorderRadius.circular(2),
             ),
@@ -852,7 +900,7 @@ class ExpenseChart extends StatelessWidget {
         ),
       );
     }
-    
+
     if (barGroups.isEmpty) {
       return const Center(
         child: Text('No data available for the selected period'),
@@ -862,7 +910,7 @@ class ExpenseChart extends StatelessWidget {
     // Calculate warning text if needed
     String? warningText;
     double totalForPeriod = 0;
-    
+
     // Filter expenses for the current period for warning
     for (var expense in expenses) {
       if (periodType == PeriodType.daily) {
@@ -879,11 +927,11 @@ class ExpenseChart extends StatelessWidget {
         }
       }
     }
-    
+
     // Set warning threshold and text
     double threshold = 0;
     String periodLabel = "";
-    
+
     if (periodType == PeriodType.daily) {
       threshold = 1000;
       periodLabel = "week";
@@ -894,9 +942,10 @@ class ExpenseChart extends StatelessWidget {
       threshold = 15000;
       periodLabel = "quarter";
     }
-    
+
     if (totalForPeriod > threshold) {
-      warningText = 'High spending: ₹${totalForPeriod.toStringAsFixed(0)} ($periodLabel)';
+      warningText =
+          'High spending: ₹${totalForPeriod.toStringAsFixed(0)} ($periodLabel)';
     }
 
     // Build the widget with a simplified layout
@@ -914,18 +963,21 @@ class ExpenseChart extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: theme == ThemeMode.dark ? Colors.white : Colors.black,
+                    color:
+                        theme == ThemeMode.dark ? Colors.white : Colors.black,
                   ),
                 ),
               ),
               // Show warning indicator if needed
               if (warningText != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: Colors.amber.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: Colors.amber.shade700, width: 0.5),
+                    border:
+                        Border.all(color: Colors.amber.shade700, width: 0.5),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -950,7 +1002,7 @@ class ExpenseChart extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          
+
           // Chart - using Container with fixed height instead of Expanded/Flexible
           SizedBox(
             height: 140, // Fixed height for the chart
@@ -958,13 +1010,15 @@ class ExpenseChart extends StatelessWidget {
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
                 maxY: periodExpenses.values.isNotEmpty
-                    ? periodExpenses.values.reduce((a, b) => a > b ? a : b) * 1.2
+                    ? periodExpenses.values.reduce((a, b) => a > b ? a : b) *
+                        1.2
                     : 100,
                 borderData: FlBorderData(show: false),
                 gridData: FlGridData(
                   show: true,
                   horizontalInterval: periodExpenses.values.isNotEmpty
-                      ? periodExpenses.values.reduce((a, b) => a > b ? a : b) / 4
+                      ? periodExpenses.values.reduce((a, b) => a > b ? a : b) /
+                          4
                       : 25,
                   getDrawingHorizontalLine: (value) => FlLine(
                     color: Colors.grey.shade200,
@@ -979,15 +1033,22 @@ class ExpenseChart extends StatelessWidget {
                       reservedSize: 24, // Reduced size further
                       getTitlesWidget: (value, meta) {
                         // Skip some labels if too many
-                        if (value % 2 != 0 && value != periodExpenses.values.reduce((a, b) => a > b ? a : b)) {
+                        if (value % 2 != 0 &&
+                            value !=
+                                periodExpenses.values
+                                    .reduce((a, b) => a > b ? a : b)) {
                           return const SizedBox();
                         }
                         return Padding(
                           padding: const EdgeInsets.only(right: 4),
                           child: Text(
-                            value > 999 ? '${(value/1000).toStringAsFixed(1)}k' : value.toInt().toString(),
+                            value > 999
+                                ? '${(value / 1000).toStringAsFixed(1)}k'
+                                : value.toInt().toString(),
                             style: TextStyle(
-                              color: theme == ThemeMode.dark ? Colors.white60 : Colors.grey.shade600,
+                              color: theme == ThemeMode.dark
+                                  ? Colors.white60
+                                  : Colors.grey.shade600,
                               fontSize: 8, // Even smaller font
                             ),
                           ),
@@ -1001,17 +1062,21 @@ class ExpenseChart extends StatelessWidget {
                       getTitlesWidget: (value, meta) {
                         if (value >= 0 && value < sortedEntries.length) {
                           // Skip some labels if too many entries
-                          if (sortedEntries.length > 6 && value % 2 != 0 && value != sortedEntries.length - 1) {
+                          if (sortedEntries.length > 6 &&
+                              value % 2 != 0 &&
+                              value != sortedEntries.length - 1) {
                             return const SizedBox();
                           }
-                          
+
                           final label = sortedEntries[value.toInt()].key;
                           return Padding(
                             padding: const EdgeInsets.only(top: 2.0),
                             child: Text(
                               label,
                               style: TextStyle(
-                                color: theme == ThemeMode.dark ? Colors.white60 : Colors.grey.shade700,
+                                color: theme == ThemeMode.dark
+                                    ? Colors.white60
+                                    : Colors.grey.shade700,
                                 fontSize: 8, // Even smaller font
                               ),
                             ),
@@ -1039,7 +1104,9 @@ class ExpenseChart extends StatelessWidget {
                       return BarTooltipItem(
                         '₹${entry.value.toStringAsFixed(0)}',
                         TextStyle(
-                          color: theme == ThemeMode.dark ? Colors.white : Colors.black,
+                          color: theme == ThemeMode.dark
+                              ? Colors.white
+                              : Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 10,
                         ),
@@ -1047,7 +1114,9 @@ class ExpenseChart extends StatelessWidget {
                           TextSpan(
                             text: '\n${entry.key}',
                             style: TextStyle(
-                              color: theme == ThemeMode.dark ? Colors.grey[300] : Colors.grey[600],
+                              color: theme == ThemeMode.dark
+                                  ? Colors.grey[300]
+                                  : Colors.grey[600],
                               fontSize: 9,
                               fontWeight: FontWeight.normal,
                             ),
@@ -1061,7 +1130,7 @@ class ExpenseChart extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Warning text row - only if needed and there's a warning
           if (warningText != null)
             Padding(
@@ -1084,9 +1153,9 @@ class ExpenseChart extends StatelessWidget {
 class ExpensesList extends StatelessWidget {
   final List<Expense> expenses;
   final Map<String, Color> categoryColors;
-  
+
   const ExpensesList({
-    Key? key, 
+    Key? key,
     required this.expenses,
     required this.categoryColors,
   }) : super(key: key);
@@ -1096,83 +1165,89 @@ class ExpensesList extends StatelessWidget {
     // Sort expenses by date (newest first)
     final sortedExpenses = List<Expense>.from(expenses);
     sortedExpenses.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    
-    return ListView.builder(
-      itemCount: sortedExpenses.length,
-      itemBuilder: (context, index) {
-        final expense = sortedExpenses[index];
-        final category = expense.category ?? 'Other';
-        final categoryColor = categoryColors[category] ?? Colors.grey;
-        
-        return Card(
-          margin: const EdgeInsets.only(bottom: 10),
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: CircleAvatar(
-              backgroundColor: categoryColor.withOpacity(0.2),
-              child: Icon(
-                _getCategoryIcon(category),
-                color: categoryColor,
-                size: 20,
-              ),
+
+    return Expanded(
+      child: ListView.builder(
+        itemCount: sortedExpenses.length,
+        itemBuilder: (context, index) {
+          final expense = sortedExpenses[index];
+          final category = expense.category ?? 'Other';
+          final categoryColor = categoryColors[category] ?? Colors.grey;
+
+          return Card(
+            margin: const EdgeInsets.only(bottom: 10),
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            title: Text(
-              expense.description,
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-            subtitle: Text(
-              '${DateFormat('MMM d, yyyy').format(expense.timestamp)} • ${expense.memberName ?? ""}',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-            ),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '₹${expense.amount.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: expense.amount > 1000 ? Colors.red.shade700 : Colors.black87,
-                  ),
+            child: ListTile(
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              leading: CircleAvatar(
+                backgroundColor: categoryColor.withOpacity(0.2),
+                child: Icon(
+                  _getCategoryIcon(category),
+                  color: categoryColor,
+                  size: 20,
                 ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: categoryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    category,
+              ),
+              title: Text(
+                expense.description,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: Text(
+                '${DateFormat('MMM d, yyyy').format(expense.timestamp)} • ${expense.memberName ?? ""}',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+              trailing: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '₹${expense.amount.toStringAsFixed(2)}',
                     style: TextStyle(
-                      fontSize: 10,
-                      color: categoryColor,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: expense.amount > 1000
+                          ? Colors.red.shade700
+                          : Colors.black87,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: categoryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      category,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: categoryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              onTap: () {
+                if (expense.billImageUrl != null) {
+                  _showBillImage(context, expense);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('No receipt image available')),
+                  );
+                }
+              },
             ),
-            onTap: () {
-              if (expense.billImageUrl != null) {
-                _showBillImage(context, expense);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('No receipt image available')),
-                );
-              }
-            },
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
-  
+
   IconData _getCategoryIcon(String category) {
     switch (category) {
       case 'Food and Beverages':
@@ -1194,7 +1269,7 @@ class ExpensesList extends StatelessWidget {
         return Icons.category;
     }
   }
-  
+
   void _showBillImage(BuildContext context, Expense expense) {
     showDialog(
       context: context,
@@ -1246,10 +1321,10 @@ class ExpensesList extends StatelessWidget {
                     ),
                   );
                 },
-                errorBuilder: (context, error, stackTrace) => Center(
+                errorBuilder: (context, error, stackTrace) => const Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Icon(Icons.error_outline, size: 40, color: Colors.red),
                       SizedBox(height: 16),
                       Text('Failed to load image'),
@@ -1285,7 +1360,8 @@ class ExpensesList extends StatelessWidget {
 }
 
 // Providers for expense data
-final expensesProvider = StreamProvider.family<List<Expense>, String>((ref, eventId) {
+final expensesProvider =
+    StreamProvider.family<List<Expense>, String>((ref, eventId) {
   return FirebaseFirestore.instance
       .collection('events')
       .doc(eventId)
@@ -1319,16 +1395,19 @@ final totalExpensesProvider = Provider.family<double, String>((ref, eventId) {
   );
 });
 
-final teamMemberProvider = Provider.family<AsyncValue<List<StudentModel>>, List<String>>((ref, teamMem) {
+final teamMemberProvider =
+    Provider.family<AsyncValue<List<StudentModel>>, List<String>>(
+        (ref, teamMem) {
   return ref.watch(teamsProvider(teamMem));
 });
 
 // Provider to fetch team members
-final teamsProvider = StreamProvider.family<List<StudentModel>, List<String>>((ref, teamMem) {
+final teamsProvider =
+    StreamProvider.family<List<StudentModel>, List<String>>((ref, teamMem) {
   if (teamMem.isEmpty) {
     return Stream.value([]);
   }
-  
+
   return FirebaseFirestore.instance
       .collection('users')
       .where('uid', whereIn: teamMem)
