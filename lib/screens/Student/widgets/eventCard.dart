@@ -1,5 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/event.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:intl/intl.dart';
 
@@ -239,6 +243,44 @@ class EventCard extends StatelessWidget {
                   ),
                 ),
               ),
+          if (hasBudget)
+            Positioned(
+              right: 16,
+              bottom: 16,
+              child: InkWell(
+                onTap: () => _openBudgetDiscussion(context,event),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.forum, size: 16, color: Colors.indigo),
+                      SizedBox(width: 4),
+                      Text(
+                        'Budget Chat',
+                        style: TextStyle(
+                          color: Colors.indigo,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          
           ],
         ),
       ),
@@ -428,9 +470,725 @@ class EventCard extends StatelessWidget {
   }
 }
 
+void _openBudgetDiscussion(BuildContext context,Event event) {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) => BudgetDiscussionPage(
+        eventId: event.id,
+        eventTitle: event.title,
+      ),
+    ),
+  );
+}
+
 // Extension to check if two dates are the same
 extension DateTimeExtension on DateTime {
   bool isSameDate(DateTime other) {
     return year == other.year && month == other.month && day == other.day;
   }
 }
+
+
+
+// Add this class at the end of the file
+class BudgetDiscussionPage extends ConsumerStatefulWidget {
+  final String eventId;
+  final String eventTitle;
+
+  const BudgetDiscussionPage({
+    Key? key,
+    required this.eventId,
+    required this.eventTitle,
+  }) : super(key: key);
+
+  @override
+  ConsumerState<BudgetDiscussionPage> createState() => _BudgetDiscussionPageState();
+}
+
+class _BudgetDiscussionPageState extends ConsumerState<BudgetDiscussionPage> {
+  final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  bool _isAiThinking = false;
+  bool _isFirstLoad = true;
+  
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+  
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final messageStream = ref.watch(
+      discussionMessagesProvider(widget.eventId)
+    );
+
+    // For first load with messages, scroll to bottom
+    if (_isFirstLoad && messageStream.maybeWhen(
+      data: (messages) => messages.isNotEmpty,
+      orElse: () => false,
+    )) {
+      _isFirstLoad = false;
+      _scrollToBottom();
+    }
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Budget Discussion: ${widget.eventTitle}'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'About Budget Discussion',
+            onPressed: () => _showInfoDialog(context),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Messages list
+          Expanded(
+            child: messageStream.when(
+              data: (messages) {
+                if (messages.isEmpty) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.forum_outlined, size: 64, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text(
+                          'No messages yet',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Start the conversation about expenses',
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                
+                _scrollToBottom();
+                
+                return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final message = messages[index];
+                    final isCurrentUser = message.userId == FirebaseAuth.instance.currentUser?.uid;
+                    final isAI = message.isAI;
+                    
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        mainAxisAlignment: isCurrentUser || isAI
+                            ? MainAxisAlignment.end
+                            : MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Avatar for other users
+                          if (!isCurrentUser && !isAI)
+                            CircleAvatar(
+                              radius: 16,
+                              backgroundColor: _getAvatarColor(message.userName),
+                              child: Text(
+                                _getInitials(message.userName),
+                                style: const TextStyle(
+                                  color: Colors.white, 
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            
+                          const SizedBox(width: 8),
+                          
+                          // Message bubble
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: isAI 
+                                    ? Colors.indigo.withOpacity(0.15)
+                                    : (isCurrentUser 
+                                        ? Theme.of(context).colorScheme.primary.withOpacity(0.8)
+                                        : Colors.grey.shade200),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: isCurrentUser || isAI 
+                                    ? CrossAxisAlignment.end
+                                    : CrossAxisAlignment.start,
+                                children: [
+                                  // Sender name
+                                  if (!isCurrentUser || isAI)
+                                    Text(
+                                      isAI ? 'Gemini AI' : message.userName,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: isAI 
+                                            ? Colors.indigo
+                                            : (isCurrentUser 
+                                                ? Colors.white70
+                                                : Colors.black54),
+                                      ),
+                                    ),
+                                  
+                                  // Message content
+                                  Text(
+                                    message.text,
+                                    style: TextStyle(
+                                      color: isCurrentUser && !isAI ? Colors.white : Colors.black87,
+                                    ),
+                                  ),
+                                  
+                                  const SizedBox(height: 4),
+                                  
+                                  // Timestamp
+                                  Text(
+                                    DateFormat('h:mm a').format(message.timestamp),
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: isCurrentUser && !isAI
+                                          ? Colors.white70
+                                          : Colors.black54,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          
+                          const SizedBox(width: 8),
+                          
+                          // Avatar for current user
+                          if (isCurrentUser && !isAI)
+                            CircleAvatar(
+                              radius: 16,
+                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              child: Text(
+                                _getInitials(message.userName),
+                                style: const TextStyle(
+                                  color: Colors.white, 
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            
+                          // Gemini avatar
+                          if (isAI)
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.indigo.withOpacity(0.3),
+                                    spreadRadius: 1,
+                                    blurRadius: 3,
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Image.asset(
+                                  'assets/gemini_icon.png',
+                                  width: 20,
+                                  height: 20,
+                                  errorBuilder: (_, __, ___) => const Icon(
+                                    Icons.smart_toy,
+                                    color: Colors.indigo,
+                                    size: 18,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stackTrace) => Center(
+                child: Text('Error loading messages: $error'),
+              ),
+            ),
+          ),
+          
+          // AI processing indicator
+          if (_isAiThinking)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              color: Colors.indigo.withOpacity(0.05),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.indigo.shade400,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Gemini is thinking...',
+                    style: TextStyle(
+                      color: Colors.indigo.shade400,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          
+          // Message input area
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      decoration: InputDecoration(
+                        hintText: 'Type a message...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey.shade100,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                      ),
+                      textCapitalization: TextCapitalization.sentences,
+                      onSubmitted: (_) => _sendMessage(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    child: IconButton(
+                      icon: const Icon(Icons.send, color: Colors.white),
+                      onPressed: _sendMessage,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: Colors.indigo,
+                    child: IconButton(
+                      tooltip: 'Ask Gemini',
+                      icon: const Icon(Icons.smart_toy, color: Colors.white),
+                      onPressed: _askGemini,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _sendMessage() async {
+    final text = _messageController.text.trim();
+    if (text.isEmpty) return;
+    
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You must be logged in to send messages')),
+      );
+      return;
+    }
+    
+    _messageController.clear();
+    
+    try {
+      await FirebaseFirestore.instance
+          .collection('events')
+          .doc(widget.eventId)
+          .collection('discussions')
+          .add({
+        'text': text,
+        'timestamp': FieldValue.serverTimestamp(),
+        'userId': user.uid,
+        'userName': user.displayName ?? 'Anonymous',
+        'isAI': false,
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send message: $e')),
+      );
+    }
+  }
+  
+  void _askGemini() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/gemini_icon.png',
+              width: 24,
+              height: 24,
+              errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy, color: Colors.indigo),
+            ),
+            const SizedBox(width: 8),
+            const Text('Ask Gemini about Budget'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Choose a question or type your own:',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            _buildGeminiQuestionButton(context, 'How can we stay within budget?'),
+            _buildGeminiQuestionButton(context, 'Analyze our current spending'),
+            _buildGeminiQuestionButton(context, 'Suggest ways to reduce costs'),
+            _buildGeminiQuestionButton(context, 'Help allocate budget to categories'),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _messageController,
+              decoration: InputDecoration(
+                hintText: 'Or type your budget question...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final text = _messageController.text.trim();
+              if (text.isNotEmpty) {
+                Navigator.pop(context);
+                _sendUserMessageAndGetGeminiResponse(text);
+              }
+            },
+            child: const Text('Ask'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGeminiQuestionButton(BuildContext context, String question) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: () {
+          Navigator.pop(context);
+          _sendUserMessageAndGetGeminiResponse(question);
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.indigo.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.indigo.withOpacity(0.3)),
+          ),
+          child: Text(question),
+        ),
+      ),
+    );
+  }
+  
+  Future<void> _sendUserMessageAndGetGeminiResponse(String question) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    
+    // First add the user's question to the chat
+    await FirebaseFirestore.instance
+        .collection('events')
+        .doc(widget.eventId)
+        .collection('discussions')
+        .add({
+      'text': question,
+      'timestamp': FieldValue.serverTimestamp(),
+      'userId': user.uid,
+      'userName': user.displayName ?? 'Anonymous',
+      'isAI': false,
+    });
+    
+    setState(() {
+      _isAiThinking = true;
+    });
+    
+    try {
+      // Get event data for context
+      final eventDoc = await FirebaseFirestore.instance
+          .collection('events')
+          .doc(widget.eventId)
+          .get();
+      
+      final expensesSnapshot = await FirebaseFirestore.instance
+          .collection('events')
+          .doc(widget.eventId)
+          .collection('expenses')
+          .get();
+      
+      // Calculate useful aggregations
+      double totalExpenses = 0;
+      Map<String, double> categoryTotals = {};
+      
+      for (final doc in expensesSnapshot.docs) {
+        final data = doc.data();
+        final amount = (data['amount'] as num?)?.toDouble() ?? 0;
+        totalExpenses += amount;
+        
+        final category = data['category'] as String? ?? 'Other';
+        categoryTotals[category] = (categoryTotals[category] ?? 0) + amount;
+      }
+      
+      // Get budget info if available
+      double? budgetAmount;
+      final eventData = eventDoc.data();
+      if (eventData != null && eventData.containsKey('estimatedBudget')) {
+        final budgetText = eventData['estimatedBudget'].toString();
+        RegExp totalRegex = RegExp(r'Total Estimated Budget:.*?₹(\d+[,\d]*)');
+        final match = totalRegex.firstMatch(budgetText);
+        
+        if (match != null && match.groupCount >= 1) {
+          final totalString = match.group(1)?.replaceAll(',', '');
+          budgetAmount = double.tryParse(totalString ?? '');
+        }
+      }
+      
+      // Format expense data for Gemini
+      final expenseSummary = categoryTotals.entries.map((e) => 
+        "- ${e.key}: ₹${e.value.toStringAsFixed(2)}"
+      ).join("\n");
+      
+      final budgetStatus = budgetAmount != null 
+          ? "Budget: ₹${budgetAmount.toStringAsFixed(2)}, Spent: ₹${totalExpenses.toStringAsFixed(2)}, Remaining: ₹${(budgetAmount - totalExpenses).toStringAsFixed(2)}"
+          : "Total expenses: ₹${totalExpenses.toStringAsFixed(2)} (no formal budget set)";
+      
+      // Create the prompt for Gemini
+      final prompt = """
+As a financial advisor helping with a college event, answer this question about budget management:
+"$question"
+
+Context about the event "${widget.eventTitle}":
+$budgetStatus
+
+Expense breakdown:
+$expenseSummary
+
+Provide practical advice that's specific to this event's financial situation. Be concise yet helpful, and focus on actionable suggestions.
+""";
+
+      // Send to Gemini API
+      final geminiResponse = await ref.read(geminiProvider).generateContent([Content.text(prompt)]);
+      final aiMessage = geminiResponse.text;
+
+      // Post the AI response to the discussion thread
+      await FirebaseFirestore.instance
+          .collection('events')
+          .doc(widget.eventId)
+          .collection('discussions')
+          .add({
+        'text': aiMessage,
+        'timestamp': FieldValue.serverTimestamp(),
+        'userId': 'gemini-ai',
+        'userName': 'Gemini AI',
+        'isAI': true,
+      });
+    } catch (e) {
+      // Only show error if still mounted
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gemini response failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAiThinking = false;
+        });
+      }
+    }
+  }
+
+  void _showInfoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: const [
+            Icon(Icons.info_outline, color: Colors.blue),
+            SizedBox(width: 8),
+            Text('About Budget Discussion'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              'This is where your team can discuss event expenses and get AI assistance for budget management.',
+              style: TextStyle(fontSize: 14),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'Features:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 4),
+            Text('• Chat with team members about budget decisions'),
+            Text('• Ask Gemini for AI-powered budget advice'),
+            Text('• Discuss expense priorities and allocations'),
+            Text('• Get real-time spending analysis'),
+            SizedBox(height: 12),
+            Text(
+              'Tip: Click the Gemini icon to get AI help with budget planning, cost reduction strategies, and financial advice.',
+              style: TextStyle(fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Got it'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getInitials(String name) {
+    if (name.isEmpty) return '?';
+    
+    final nameParts = name.split(' ');
+    if (nameParts.length > 1) {
+      return nameParts[0][0].toUpperCase() + nameParts[1][0].toUpperCase();
+    } else if (name.length >= 2) {
+      return name.substring(0, 2).toUpperCase();
+    } else {
+      return name[0].toUpperCase();
+    }
+  }
+  
+  Color _getAvatarColor(String name) {
+    final colors = [
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
+      Colors.pink,
+      Colors.indigo,
+      Colors.red,
+    ];
+    
+    final index = name.isEmpty ? 0 : name.codeUnitAt(0) % colors.length;
+    return colors[index];
+  }
+}
+
+// Message model to better handle chat data
+class DiscussionMessage {
+  final String id;
+  final String text;
+  final String userId;
+  final String userName;
+  final DateTime timestamp;
+  final bool isAI;
+  
+  DiscussionMessage({
+    required this.id,
+    required this.text,
+    required this.userId,
+    required this.userName,
+    required this.timestamp,
+    this.isAI = false,
+  });
+  
+  factory DiscussionMessage.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return DiscussionMessage(
+      id: doc.id,
+      text: data['text'] ?? '',
+      userId: data['userId'] ?? '',
+      userName: data['userName'] ?? 'Unknown',
+      timestamp: data['timestamp'] != null 
+          ? (data['timestamp'] as Timestamp).toDate() 
+          : DateTime.now(),
+      isAI: data['isAI'] ?? false,
+    );
+  }
+}
+
+// Provider for discussion messages
+final discussionMessagesProvider = StreamProvider.family<List<DiscussionMessage>, String>(
+  (ref, eventId) {
+    return FirebaseFirestore.instance
+        .collection('events')
+        .doc(eventId)
+        .collection('discussions')
+        .orderBy('timestamp', descending: false)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => DiscussionMessage.fromFirestore(doc))
+            .toList());
+  },
+);
+
+// Gemini provider (assuming you already have this set up from previous code)
+final geminiProvider = Provider<GenerativeModel>((ref) {
+  final apiKey = 'AIzaSyCd3mvMdoEx7_1KJ5AcCLyNQXRN4u9aWJc';
+  final model = GenerativeModel(
+    model: 'gemini-1.5-flash',
+    apiKey: apiKey,
+  );
+  return model;
+});
