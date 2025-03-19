@@ -108,161 +108,326 @@ class _StudentHomePageState extends ConsumerState<StudentHomePage> {
       StudentCard(student: student),
     ];
     return Scaffold(
-      bottomSheet: selectedIndex == 3
-          ? Container(
-              height: MediaQuery.of(context).size.height * 0.4,
+     // Replace the bottom sheet in the Scaffold with this improved version
+
+// Replace the existing bottomSheet with this improved version
+
+bottomSheet: selectedIndex == 3
+    ? Container(
+        height: MediaQuery.of(context).size.height * 0.65, // Increased height for better visibility
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: theme == ThemeMode.dark
+                ? [Colors.grey.shade900, Colors.black]
+                : [Colors.white, Colors.grey.shade50],
+          ),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(32),
+            topRight: Radius.circular(32),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Handle/pill for bottom sheet
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 16),
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
+                color: theme == ThemeMode.dark ? Colors.grey.shade700 : Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
               ),
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 24,
-                  right: 24,
-                  top: 24,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Dark Mode',
+            ),
+            
+            // Title with icon
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme == ThemeMode.dark
+                          ? Colors.indigo.withOpacity(0.2)
+                          : Colors.indigo.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.settings_rounded,
+                      color: theme == ThemeMode.dark 
+                          ? Colors.indigo.shade200
+                          : Colors.indigo,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Text(
+                    'Settings',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: theme == ThemeMode.dark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 20),
+            
+            // Settings items in a scrollable list
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  // Appearance section with animation
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 400),
+                    builder: (context, value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: Transform.translate(
+                          offset: Offset(0, 10 * (1 - value)),
+                          child: child,
                         ),
-                        Consumer(builder: (context, ref, child) {
-                          final theme = ref.watch(themeModeProvider);
-                          return IconButton(
-                              onPressed: () {
-                                ref.read(themeModeProvider.notifier).state =
-                                    theme == ThemeMode.light
-                                        ? ThemeMode.dark
-                                        : ThemeMode.light;
-                              },
-                              icon: Icon(theme == ThemeMode.dark
-                                  ? Icons.light_mode
-                                  : Icons.dark_mode));
-                        })
+                      );
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader('Appearance'),
+                        
+                        _buildSettingsTile(
+                          title: 'Dark Mode',
+                          icon: theme == ThemeMode.dark 
+                              ? Icons.dark_mode_rounded
+                              : Icons.light_mode_rounded,
+                          iconColor: theme == ThemeMode.dark 
+                              ? Colors.amber
+                              : Colors.indigo,
+                          trailing: Consumer(
+                            builder: (context, ref, _) {
+                              final themeMode = ref.watch(themeModeProvider);
+                              return Switch.adaptive(
+                                value: themeMode == ThemeMode.dark,
+                                activeColor: Colors.indigo,
+                                onChanged: (value) {
+                                  ref.read(themeModeProvider.notifier).state = 
+                                      value ? ThemeMode.dark : ThemeMode.light;
+                                },
+                              );
+                            },
+                          ),
+                        ),
                       ],
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Notification',
+                  ),
+                  
+                  const Divider(height: 32),
+                  
+                  // Notifications section with animation
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 600),
+                    builder: (context, value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: Transform.translate(
+                          offset: Offset(0, 10 * (1 - value)),
+                          child: child,
                         ),
-                        SizedBox(
-                          height: 14,
-                          child: Switch(
+                      );
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader('Notifications'),
+                        
+                        _buildSettingsTile(
+                          title: 'Push Notifications',
+                          subtitle: 'Receive updates and alerts',
+                          icon: Icons.notifications_none_rounded,
+                          iconColor: Colors.amber,
+                          trailing: Switch.adaptive(
+                            value: true,
+                            activeColor: Colors.indigo,
+                            onChanged: (value) {
+                              // Implement notification toggle
+                            },
+                          ),
+                        ),
+                        
+                        _buildSettingsTile(
+                          title: 'Email Notifications',
+                          subtitle: 'Get updates via email',
+                          icon: Icons.mark_email_unread_outlined,
+                          iconColor: Colors.green,
+                          trailing: Switch.adaptive(
                             value: false,
-                            onChanged: (value) {},
+                            activeColor: Colors.indigo,
+                            onChanged: (value) {
+                              // Implement email notification toggle
+                            },
                           ),
-                        )
-                      ],
-                    ),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Privacy Policy',
-                        ),
-                        Icon(
-                          Icons.arrow_forward_ios_rounded,
                         ),
                       ],
                     ),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  ),
+                  
+                  const Divider(height: 32),
+                  
+                  // Support & About section with animation
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 800),
+                    builder: (context, value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: Transform.translate(
+                          offset: Offset(0, 10 * (1 - value)),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'About Us',
-                        ),
-                        Icon(
-                          Icons.arrow_forward_ios_rounded,
-                        ),
-                      ],
-                    ),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Faqs',
-                        ),
-                        Icon(
-                          Icons.arrow_forward_ios_rounded,
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Logout',
-                        ),
-                        IconButton(
-                          padding: const EdgeInsets.all(2),
-                          style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              backgroundColor: Colors.red.shade50),
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    insetPadding: EdgeInsets.zero,
-                                    title: const Text('Logout'),
-                                    content: const Text(
-                                        'Are you sure you want to logout?'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: const Text('No'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          logout(context);
-                                        },
-                                        child: const Text('Yes'),
-                                      ),
-                                    ],
-                                  );
-                                });
+                        _buildSectionHeader('Support & About'),
+                        
+                        _buildSettingsTile(
+                          title: 'Privacy Policy',
+                          icon: Icons.shield_outlined,
+                          iconColor: Colors.blue,
+                          onTap: () {
+                            // Navigate to privacy policy
                           },
-                          icon: const Icon(
-                            Icons.logout,
-                            size: 14,
-                          ),
+                        ),
+                        
+                        _buildSettingsTile(
+                          title: 'About Us',
+                          subtitle: 'Learn more about our team',
+                          icon: Icons.info_outline_rounded,
+                          iconColor: Colors.purple,
+                          onTap: () {
+                            // Navigate to about us
+                          },
+                        ),
+                        
+                        _buildSettingsTile(
+                          title: 'FAQs',
+                          subtitle: 'Get answers to common questions',
+                          icon: Icons.help_outline_rounded,
+                          iconColor: Colors.teal,
+                          onTap: () {
+                            // Navigate to FAQs
+                          },
                         ),
                       ],
                     ),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  ),
+                  
+                  const Divider(height: 32),
+                  
+                  // Account section with animation
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 1000),
+                    builder: (context, value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: Transform.translate(
+                          offset: Offset(0, 10 * (1 - value)),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Version',
-                        ),
-                        SizedBox(
-                          width: 5,
-                        ),
-                        Text(
-                          '1.5.5',
+                        _buildSectionHeader('Account'),
+                        
+                        // Logout button
+                        _buildSettingsTile(
+                          title: 'Logout',
+                          subtitle: 'Sign out from your account',
+                          icon: Icons.logout_rounded,
+                          iconColor: Colors.red,
+                          titleColor: Colors.red,
+                          onTap: () => _showLogoutConfirmation(context),
                         ),
                       ],
                     ),
-                    const SizedBox(
-                      height: 5,
-                    )
-                  ],
-                ),
-              ))
-          : null,
+                  ),
+                  
+                  // Version info with animation
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 1200),
+                    builder: (context, value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: child,
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: theme == ThemeMode.dark
+                                  ? Colors.grey.shade800
+                                  : Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.android_rounded,
+                                  size: 14,
+                                  color: theme == ThemeMode.dark
+                                      ? Colors.grey.shade400
+                                      : Colors.grey.shade700,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Version 1.5.5',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: theme == ThemeMode.dark
+                                        ? Colors.grey.shade400
+                                        : Colors.grey.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      )
+    : null,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,
         backgroundColor: Colors.transparent,
@@ -322,6 +487,192 @@ class _StudentHomePageState extends ConsumerState<StudentHomePage> {
       body: pages.elementAt(selectedIndex),
     );
   }
+  
+  // Add these utility methods to the _StudentHomePageState class
+
+Widget _buildSectionHeader(String title) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 16),
+    child: Text(
+      title,
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: Colors.indigo,
+        letterSpacing: 0.5,
+      ),
+    ),
+  );
+}
+
+Widget _buildSettingsTile({
+  required String title,
+  String? subtitle,
+  required IconData icon,
+  Color iconColor = Colors.indigo,
+  Color? titleColor,
+  Widget? trailing,
+  VoidCallback? onTap,
+}) {
+  final theme = ref.watch(themeModeProvider);
+  final isDark = theme == ThemeMode.dark;
+  
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.black12 : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              if (!isDark) BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color: titleColor ?? (isDark ? Colors.white : Colors.black87),
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (trailing != null) trailing,
+              if (onTap != null && trailing == null)
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+                ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+void _showLogoutConfirmation(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) => Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.logout_rounded,
+                color: Colors.red.shade400,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Logout',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Are you sure you want to logout from your account?',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.red.shade400,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      logout(context);
+                    },
+                    child: const Text('Logout'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
 }
 
 class Home extends ConsumerWidget {
