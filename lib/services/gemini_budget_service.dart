@@ -1,8 +1,17 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 
 class GeminiBudgetService {
   final String apiKey = 'AIzaSyCd3mvMdoEx7_1KJ5AcCLyNQXRN4u9aWJc';
+  late GenerativeModel _model;
+  
+  GeminiBudgetService() {
+    // Initialize the model
+    _model = GenerativeModel(
+      model: 'gemini-1.0-pro',
+      apiKey: apiKey,
+    );
+  }
 
   Future<String> estimateEventBudget({
     required String title,
@@ -13,9 +22,6 @@ class GeminiBudgetService {
     required double fee,
     required int durationDays,
   }) async {
-    final url = Uri.parse(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=$apiKey');
-        
     final String prompt = '''
       I need an estimated budget for a college event with the following details:
       - Event title: $title
@@ -39,38 +45,24 @@ class GeminiBudgetService {
       ''';
 
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'contents': [
-            {
-              'parts': [
-                {
-                  'text': prompt
-                }
-              ]
-            }
-          ],
-          'generationConfig': {
-            'temperature': 0.7,
-            'topK': 40,
-            'topP': 0.95,
-            'maxOutputTokens': 1024,
-          }
-        }),
-      );
+      // Create a content instance with the prompt text
+      final content = [Content.text(prompt)];
       
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['candidates'][0]['content']['parts'][0]['text'];
+      // Generate content using the model
+      final response = await _model.generateContent(content);
+      
+      // Get the text from the response
+      final responseText = response.text;
+      
+      if (responseText != null && responseText.isNotEmpty) {
+        return responseText;
       } else {
-        print('API Error: ${response.body}');
-        throw Exception('Failed to estimate budget. Status code: ${response.statusCode}');
+        debugPrint('Empty response from Gemini API');
+        return generateFallbackBudget(title, attendees, locationType, durationDays);
       }
     } catch (e) {
-      print('Exception in budget estimation: $e');
-      throw Exception('Failed to connect to budget service: $e');
+      debugPrint('Exception in budget estimation: $e');
+      return generateFallbackBudget(title, attendees, locationType, durationDays);
     }
   }
   
@@ -115,5 +107,77 @@ class GeminiBudgetService {
       - Utilize student volunteers to reduce staffing costs
       - ${durationDays > 1 ? 'For multi-day events, negotiate package deals with vendors' : 'Keep the event focused to minimize costs'}
     ''';
+  }
+  
+  // Method to try generating budget with optional configurations
+  Future<String> estimateEventBudgetWithConfig({
+    required String title,
+    required String description, 
+    required String locationType,
+    required String locationDetails,
+    required int attendees,
+    required double fee,
+    required int durationDays,
+    double temperature = 0.7,
+    int? maxOutputTokens,
+    double? topK,
+    double? topP,
+  }) async {
+    final String prompt = '''
+      I need an estimated budget for a college event with the following details:
+      - Event title: $title
+      - Description: $description
+      - Location: $locationType - $locationDetails
+      - Duration: $durationDays day(s)
+      - Expected attendees: $attendees people
+      - Fees charged per person: ${fee > 0 ? '$fee INR' : 'No fee (In-College event)'}
+      
+      Please provide a detailed budget breakdown including estimated costs for:
+      1. Venue (if outside college)
+      2. Food and beverages
+      3. Equipment rental
+      4. Decorations
+      5. Marketing materials
+      6. Transportation (if applicable)
+      7. Miscellaneous expenses
+      
+      Also provide a total estimated cost and any suggestions to optimize the budget.
+      Format your response in a clear, readable way with line breaks and a markdown format.
+      ''';
+
+    try {
+      // Create a content instance with the prompt text
+      final content = [Content.text(prompt)];
+      
+      // Configure generation parameters
+      final generationConfig = GenerationConfig(
+        temperature: temperature,
+        maxOutputTokens: maxOutputTokens,
+        
+      );
+      
+      // Create a configured model with the generation parameters
+      final configuredModel = GenerativeModel(
+        model: 'gemini-1.0-pro',
+        apiKey: apiKey,
+        generationConfig: generationConfig,
+      );
+      
+      // Generate content using the configured model
+      final response = await configuredModel.generateContent(content);
+      
+      // Get the text from the response
+      final responseText = response.text;
+      
+      if (responseText != null && responseText.isNotEmpty) {
+        return responseText;
+      } else {
+        debugPrint('Empty response from Gemini API with config');
+        return generateFallbackBudget(title, attendees, locationType, durationDays);
+      }
+    } catch (e) {
+      debugPrint('Exception in budget estimation with config: $e');
+      return generateFallbackBudget(title, attendees, locationType, durationDays);
+    }
   }
 }
