@@ -764,6 +764,7 @@ class ExpenseChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Process data for chart
     Map<String, double> periodExpenses = {};
     final now = DateTime.now();
     
@@ -809,7 +810,7 @@ class ExpenseChart extends StatelessWidget {
     final sortedEntries = periodExpenses.entries.toList();
     
     if (periodType == PeriodType.daily || periodType == PeriodType.sixMonths) {
-      // For daily and monthly views, sort by date
+      // Sort logic for daily and monthly views
       sortedEntries.sort((a, b) {
         if (periodType == PeriodType.daily) {
           // Parse day/month format
@@ -825,7 +826,7 @@ class ExpenseChart extends StatelessWidget {
         }
       });
     } else {
-      // For quarterly view, sort by quarter number
+      // Sort for quarterly view
       sortedEntries.sort((a, b) {
         final quarterA = int.parse(a.key.substring(1));
         final quarterB = int.parse(b.key.substring(1));
@@ -833,7 +834,7 @@ class ExpenseChart extends StatelessWidget {
       });
     }
     
-    // Prepare the data for the chart
+    // Prepare bar chart data
     List<BarChartGroupData> barGroups = [];
     for (int i = 0; i < sortedEntries.length; i++) {
       final entry = sortedEntries[i];
@@ -844,8 +845,8 @@ class ExpenseChart extends StatelessWidget {
             BarChartRodData(
               toY: entry.value,
               color: theme == ThemeMode.dark ? Colors.blueAccent : Colors.orange,
-              width: 16,
-              borderRadius: BorderRadius.circular(4),
+              width: 12, // Slimmer bars
+              borderRadius: BorderRadius.circular(2),
             ),
           ],
         ),
@@ -858,216 +859,226 @@ class ExpenseChart extends StatelessWidget {
       );
     }
 
-     return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // Chart title
-      Text(
-        _getChartTitle(),
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: theme == ThemeMode.dark ? Colors.white : Colors.black,
-        ),
-      ),
-      const SizedBox(height: 12), // Reduced spacing to save space
-      
-      // Chart content - wrapped in Flexible to prevent overflow
-      Flexible(
-        fit: FlexFit.tight, // Forces the chart to fit in the available space
-        child: BarChart(
-          BarChartData(
-            maxY: periodExpenses.values.isNotEmpty
-                ? periodExpenses.values.reduce((a, b) => a > b ? a : b) * 1.2
-                : 100,
-            borderData: FlBorderData(show: false),
-            gridData: FlGridData(
-              show: true,
-              horizontalInterval: periodExpenses.values.isNotEmpty
-                  ? periodExpenses.values.reduce((a, b) => a > b ? a : b) / 5
-                  : 20,
-              getDrawingHorizontalLine: (value) => FlLine(
-                color: Colors.grey.shade200,
-                strokeWidth: 1,
-              ),
-            ),
-            titlesData: FlTitlesData(
-              leftTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  reservedSize: 30, // Reduced size to save space
-                  getTitlesWidget: (value, meta) {
-                    return Text(
-                      '₹${value.toInt()}',
-                      style: TextStyle(
-                        color: theme == ThemeMode.dark ? Colors.white70 : Colors.grey.shade700,
-                        fontSize: 9, // Smaller font
-                      ),
-                    );
-                  },
+    // Calculate warning text if needed
+    String? warningText;
+    double totalForPeriod = 0;
+    
+    // Filter expenses for the current period for warning
+    for (var expense in expenses) {
+      if (periodType == PeriodType.daily) {
+        if (now.difference(expense.timestamp).inDays <= 7) {
+          totalForPeriod += expense.amount;
+        }
+      } else if (periodType == PeriodType.sixMonths) {
+        if (now.difference(expense.timestamp).inDays <= 30) {
+          totalForPeriod += expense.amount;
+        }
+      } else {
+        if (now.difference(expense.timestamp).inDays <= 90) {
+          totalForPeriod += expense.amount;
+        }
+      }
+    }
+    
+    // Set warning threshold and text
+    double threshold = 0;
+    String periodLabel = "";
+    
+    if (periodType == PeriodType.daily) {
+      threshold = 1000;
+      periodLabel = "week";
+    } else if (periodType == PeriodType.sixMonths) {
+      threshold = 5000;
+      periodLabel = "month";
+    } else {
+      threshold = 15000;
+      periodLabel = "quarter";
+    }
+    
+    if (totalForPeriod > threshold) {
+      warningText = 'High spending: ₹${totalForPeriod.toStringAsFixed(0)} ($periodLabel)';
+    }
+
+    // Build the widget with a simplified layout
+    return Container(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title row with warning if needed
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _getChartTitle(),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: theme == ThemeMode.dark ? Colors.white : Colors.black,
+                  ),
                 ),
               ),
-              bottomTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  getTitlesWidget: (value, meta) {
-                    if (value >= 0 && value < sortedEntries.length) {
-                      final label = sortedEntries[value.toInt()].key;
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 4.0), // Reduced padding
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            color: theme == ThemeMode.dark ? Colors.white70 : Colors.black,
-                            fontSize: 9, // Smaller font
-                          ),
-                        ),
-                      );
-                    }
-                    return const SizedBox();
-                  },
-                ),
-              ),
-              rightTitles: AxisTitles(
-                sideTitles: SideTitles(showTitles: false),
-              ),
-              topTitles: AxisTitles(
-                sideTitles: SideTitles(showTitles: false),
-              ),
-            ),
-            barGroups: barGroups,
-            barTouchData: BarTouchData(
-              touchTooltipData: BarTouchTooltipData(
-                tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                tooltipMargin: 8,
-                getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                  final entry = sortedEntries[group.x.toInt()];
-                  return BarTooltipItem(
-                    '₹${entry.value.toStringAsFixed(2)}',
-                    TextStyle(
-                      color: theme == ThemeMode.dark 
-                          ? Colors.white 
-                          : Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
+              // Show warning indicator if needed
+              if (warningText != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.amber.shade700, width: 0.5),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextSpan(
-                        text: '\n${entry.key}',
+                      Icon(
+                        Icons.warning_amber_outlined,
+                        color: Colors.amber.shade700,
+                        size: 12,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        'High',
                         style: TextStyle(
-                          color: theme == ThemeMode.dark 
-                              ? Colors.grey[300] 
-                              : Colors.grey[600],
+                          color: Colors.amber.shade800,
                           fontSize: 10,
-                          fontWeight: FontWeight.normal,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
-                  );
-                },
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          
+          // Chart - using Container with fixed height instead of Expanded/Flexible
+          SizedBox(
+            height: 140, // Fixed height for the chart
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: periodExpenses.values.isNotEmpty
+                    ? periodExpenses.values.reduce((a, b) => a > b ? a : b) * 1.2
+                    : 100,
+                borderData: FlBorderData(show: false),
+                gridData: FlGridData(
+                  show: true,
+                  horizontalInterval: periodExpenses.values.isNotEmpty
+                      ? periodExpenses.values.reduce((a, b) => a > b ? a : b) / 4
+                      : 25,
+                  getDrawingHorizontalLine: (value) => FlLine(
+                    color: Colors.grey.shade200,
+                    strokeWidth: 0.5, // Thinner lines
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  show: true,
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 24, // Reduced size further
+                      getTitlesWidget: (value, meta) {
+                        // Skip some labels if too many
+                        if (value % 2 != 0 && value != periodExpenses.values.reduce((a, b) => a > b ? a : b)) {
+                          return const SizedBox();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Text(
+                            value > 999 ? '${(value/1000).toStringAsFixed(1)}k' : value.toInt().toString(),
+                            style: TextStyle(
+                              color: theme == ThemeMode.dark ? Colors.white60 : Colors.grey.shade600,
+                              fontSize: 8, // Even smaller font
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        if (value >= 0 && value < sortedEntries.length) {
+                          // Skip some labels if too many entries
+                          if (sortedEntries.length > 6 && value % 2 != 0 && value != sortedEntries.length - 1) {
+                            return const SizedBox();
+                          }
+                          
+                          final label = sortedEntries[value.toInt()].key;
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 2.0),
+                            child: Text(
+                              label,
+                              style: TextStyle(
+                                color: theme == ThemeMode.dark ? Colors.white60 : Colors.grey.shade700,
+                                fontSize: 8, // Even smaller font
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox();
+                      },
+                    ),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                ),
+                barGroups: barGroups,
+                barTouchData: BarTouchData(
+                  enabled: true,
+                  touchTooltipData: BarTouchTooltipData(
+                    tooltipPadding: const EdgeInsets.all(6),
+                    tooltipMargin: 4,
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      final entry = sortedEntries[group.x.toInt()];
+                      return BarTooltipItem(
+                        '₹${entry.value.toStringAsFixed(0)}',
+                        TextStyle(
+                          color: theme == ThemeMode.dark ? Colors.white : Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: '\n${entry.key}',
+                            style: TextStyle(
+                              color: theme == ThemeMode.dark ? Colors.grey[300] : Colors.grey[600],
+                              fontSize: 9,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  handleBuiltInTouches: true,
+                ),
               ),
-              touchCallback: (event, response) {},
-              handleBuiltInTouches: true,
             ),
           ),
-        ),
-      ),
-      
-      // Budget warning - only shown for supported period types
-      // Optional based on period type and thresholds
-      if (_shouldShowWarning())
-        Padding(
-          padding: const EdgeInsets.only(top: 8.0), // Reduced top spacing
-          child: _buildWarningIfNeeded(context),
-        ),
-    ],
-  );
-  }
-  bool _shouldShowWarning() {
-  // Only show warning for daily view initially to save space
-  return periodType == PeriodType.daily;
-  
-  // Alternative: show warnings for all period types if needed
-  // return true;
-}
-Widget _buildWarningIfNeeded(BuildContext context) {
-  // Calculate total expenses for this period
-  double totalForPeriod = 0;
-  final now = DateTime.now();
-  
-  // Filter expenses for the current period
-  for (var expense in expenses) {
-    if (periodType == PeriodType.daily) {
-      if (now.difference(expense.timestamp).inDays <= 7) {
-        totalForPeriod += expense.amount;
-      }
-    } else if (periodType == PeriodType.sixMonths) {
-      if (now.difference(expense.timestamp).inDays <= 30) {
-        totalForPeriod += expense.amount;
-      }
-    } else {
-      if (now.difference(expense.timestamp).inDays <= 90) {
-        totalForPeriod += expense.amount;
-      }
-    }
-  }
-  
-  // Warning threshold based on period type
-  double dailyThreshold = 1000;  // Adjust these thresholds as needed
-  double monthlyThreshold = 5000;
-  double quarterlyThreshold = 15000;
-  
-  bool showWarning = false;
-  String message = '';
-  
-  if (periodType == PeriodType.daily && totalForPeriod > dailyThreshold) {
-    showWarning = true;
-    message = 'High spending: ₹${totalForPeriod.toStringAsFixed(0)} (week)';
-  } else if (periodType == PeriodType.sixMonths && totalForPeriod > monthlyThreshold) {
-    showWarning = true;
-    message = 'High spending: ₹${totalForPeriod.toStringAsFixed(0)} (month)';
-  } else if (periodType == PeriodType.yearly && totalForPeriod > quarterlyThreshold) {
-    showWarning = true;
-    message = 'High spending: ₹${totalForPeriod.toStringAsFixed(0)} (quarter)';
-  }
-  
-  if (showWarning) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Reduced padding
-      decoration: BoxDecoration(
-        color: Colors.amber.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.amber.shade700),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min, // Make container size wrap content
-        children: [
-          Icon(
-            Icons.warning_amber_outlined,
-            color: Colors.amber.shade700,
-            size: 14,
-          ),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              message,
-              style: TextStyle(
-                color: Colors.amber.shade800,
-                fontSize: 11, // Smaller font
-                fontWeight: FontWeight.w500,
+          
+          // Warning text row - only if needed and there's a warning
+          if (warningText != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Text(
+                warningText,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.amber.shade800,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              overflow: TextOverflow.ellipsis,
             ),
-          ),
         ],
       ),
     );
   }
-  
-  return const SizedBox.shrink(); // No warning needed
-}
-  // Helper method to show warnings for any budget issues
-  
 }
 
 class ExpensesList extends StatelessWidget {
