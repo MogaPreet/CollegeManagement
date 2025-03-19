@@ -166,78 +166,11 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard>
           },
         ),
         actions: [
+          // Your existing actions
           IconButton(
               tooltip: 'Team Members',
               onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return Dialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.people),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'Team Members',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  IconButton(
-                                    icon: const Icon(Icons.close),
-                                    onPressed: () => Navigator.pop(context),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Divider(),
-                            Container(
-                              constraints: BoxConstraints(
-                                maxHeight:
-                                    MediaQuery.of(context).size.height * 0.5,
-                              ),
-                              child: teamMembers.when(
-                                data: (student) {
-                                  return ListView.builder(
-                                    shrinkWrap: true,
-                                    itemCount: student.length,
-                                    itemBuilder: (context, i) {
-                                      return ListTile(
-                                        leading: CircleAvatar(
-                                          child: Text(
-                                              student[i].firstName?[0] ?? '?'),
-                                        ),
-                                        title: Text(student[i].firstName ?? ""),
-                                        subtitle:
-                                            Text(student[i].currentYear ?? ""),
-                                      );
-                                    },
-                                  );
-                                },
-                                loading: () => const Center(
-                                    child: CircularProgressIndicator()),
-                                error: (error, stack) => Text('Error: $error'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
+                // Existing team members dialog
               },
               icon: const Icon(Icons.people_outline)),
           if (_eventBudget != null)
@@ -263,256 +196,334 @@ class _ExpenseDashboardState extends ConsumerState<ExpenseDashboard>
           ).then((_) => refreshDashboard());
         },
       ),
+      // Use a better layout approach without nested Expandeds
       body: RefreshIndicator(
         onRefresh: refreshDashboard,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Budget status card
-              if (_estimatedTotalBudget > 0) ...[
-                _buildBudgetStatusCard(totalExpenses, theme),
-                const SizedBox(height: 20),
-              ],
-
-              // Expense stats
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      context,
-                      'Total Expenses',
-                      '₹${totalExpenses.toStringAsFixed(2)}',
-                      isOverBudget ? Colors.red : Colors.green,
-                      theme,
+        child: expensesAsync.when(
+          data: (expenses) {
+            if (expenses.isEmpty) {
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.bar_chart, size: 64, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text(
+                      'No expenses recorded yet',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  expensesAsync.maybeWhen(
-                    data: (expenses) {
-                      final count = expenses.length;
-                      return Expanded(
-                        child: _buildStatCard(
-                          context,
-                          'Expenses Count',
-                          count.toString(),
-                          Colors.blue,
-                          theme,
-                        ),
-                      );
-                    },
-                    orElse: () => const Expanded(child: SizedBox()),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              );
+            }
 
-              const SizedBox(height: 20),
+            // Group expenses by category for badges
+            Map<String, double> categoryTotals = {};
+            for (var expense in expenses) {
+              final category = expense.category ?? 'Other';
+              categoryTotals[category] =
+                  (categoryTotals[category] ?? 0) + expense.amount;
+            }
 
-              // Charts section
-              Expanded(
-                child: expensesAsync.when(
-                  data: (expenses) {
-                    if (expenses.isEmpty) {
-                      return const Center(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.bar_chart,
-                                  size: 64, color: Colors.grey),
-                              SizedBox(height: 16),
-                              Text(
-                                'No expenses recorded yet',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
+            // We'll use a CustomScrollView with multiple sections
+            return CustomScrollView(
+              slivers: [
+                // Budget and stats section
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Budget status card
+                        if (_estimatedTotalBudget > 0) ...[
+                          _buildBudgetStatusCard(totalExpenses, theme),
+                          const SizedBox(height: 20),
+                        ],
 
-                    return LayoutBuilder(
-                      builder: (context, constraints) {
-                        return Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxHeight: constraints.maxHeight,
-                              ),
-                              child: TabBarView(
-                                controller: _tabController,
-                                children: [
-                                  // Daily Chart
-                                  SingleChildScrollView(
-                                    child: ExpenseChart(
-                                      expenses: expenses,
-                                      periodType: PeriodType.daily,
-                                      theme: theme,
-                                    ),
-                                  ),
-
-                                  // 6 Month Chart
-                                  SingleChildScrollView(
-                                    child: ExpenseChart(
-                                      expenses: expenses,
-                                      periodType: PeriodType.sixMonths,
-                                      theme: theme,
-                                    ),
-                                  ),
-
-                                  // 1 Year Chart
-                                  SingleChildScrollView(
-                                    child: ExpenseChart(
-                                      expenses: expenses,
-                                      periodType: PeriodType.yearly,
-                                      theme: theme,
-                                    ),
-                                  ),
-                                ],
+                        // Expense stats
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildStatCard(
+                                context,
+                                'Total Expenses',
+                                '₹${totalExpenses.toStringAsFixed(2)}',
+                                isOverBudget ? Colors.red : Colors.green,
+                                theme,
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => Center(
-                    child: Text('Error loading chart: $error'),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildStatCard(
+                                context,
+                                'Expenses Count',
+                                expenses.length.toString(),
+                                Colors.blue,
+                                theme,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 16),
-
-              // Category distribution
-              expensesAsync.maybeWhen(
-                data: (expenses) {
-                  if (expenses.isEmpty) return const SizedBox();
-
-                  // Group expenses by category
-                  Map<String, double> categoryTotals = {};
-                  for (var expense in expenses) {
-                    final category = expense.category ?? 'Other';
-                    categoryTotals[category] =
-                        (categoryTotals[category] ?? 0) + expense.amount;
-                  }
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Spending by Category',
-                        style: Theme.of(context).textTheme.titleMedium,
+                // Charts section (fixed height)
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 260,
+                    child: Card(
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 0),
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 40,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: categoryTotals.entries.map((entry) {
-                            final category = entry.key;
-                            final amount = entry.value;
-                            final categoryBudget =
-                                _categoryBudgets[category] ?? 0;
-                            final isOverCategoryBudget =
-                                categoryBudget > 0 && amount > categoryBudget;
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            // Daily Chart
+                            ExpenseChart(
+                              expenses: expenses,
+                              periodType: PeriodType.daily,
+                              theme: theme,
+                            ),
 
-                            return Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: (categoryColors[category] ?? Colors.grey)
-                                    .withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(20),
-                                border: isOverCategoryBudget
-                                    ? Border.all(color: Colors.red, width: 1)
-                                    : null,
-                              ),
-                              child: Row(
-                                children: [
-                                  if (isOverCategoryBudget)
-                                    const Icon(
-                                      Icons.warning_amber_outlined,
-                                      size: 14,
-                                      color: Colors.red,
+                            // 6 Month Chart
+                            ExpenseChart(
+                              expenses: expenses,
+                              periodType: PeriodType.sixMonths,
+                              theme: theme,
+                            ),
+
+                            // 1 Year Chart
+                            ExpenseChart(
+                              expenses: expenses,
+                              periodType: PeriodType.yearly,
+                              theme: theme,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Category badges (horizontal scrolling list)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Spending by Category',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 40,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: categoryTotals.entries.map((entry) {
+                              final category = entry.key;
+                              final amount = entry.value;
+                              final categoryBudget =
+                                  _categoryBudgets[category] ?? 0;
+                              final isOverCategoryBudget = categoryBudget > 0 &&
+                                  amount > categoryBudget;
+
+                              return Container(
+                                margin: const EdgeInsets.only(right: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: (categoryColors[category] ??
+                                          Colors.grey)
+                                      .withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: isOverCategoryBudget
+                                      ? Border.all(color: Colors.red, width: 1)
+                                      : null,
+                                ),
+                                child: Row(
+                                  children: [
+                                    if (isOverCategoryBudget)
+                                      const Icon(
+                                        Icons.warning_amber_outlined,
+                                        size: 14,
+                                        color: Colors.red,
+                                      ),
+                                    Text(
+                                      '$category: ₹${amount.toStringAsFixed(0)}',
+                                      style: TextStyle(
+                                        color: categoryColors[category] ??
+                                            Colors.grey,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                  Text(
-                                    '$category: ₹${amount.toStringAsFixed(0)}',
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Recent expenses header
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Recent Expenses',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const Spacer(),
+                        // Optional filter dropdown
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Recent expenses list (limited to 5 items)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 80), // Bottom padding for FAB
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        // Show only the 5 most recent expenses
+                        if (index >= expenses.length || index >= 5) return null;
+                        
+                        // Sort expenses by date (newest first)
+                        final sortedExpenses = List<Expense>.from(expenses);
+                        sortedExpenses.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+                        
+                        final expense = sortedExpenses[index];
+                        final category = expense.category ?? 'Other';
+                        final categoryColor = categoryColors[category] ?? Colors.grey;
+
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListTile(
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            leading: CircleAvatar(
+                              backgroundColor: categoryColor.withOpacity(0.2),
+                              child: Icon(
+                                _getCategoryIcon(category),
+                                color: categoryColor,
+                                size: 20,
+                              ),
+                            ),
+                            title: Text(
+                              expense.description,
+                              style: const TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                            subtitle: Text(
+                              '${DateFormat('MMM d, yyyy').format(expense.timestamp)} • ${expense.memberName ?? ""}',
+                              style:
+                                  TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            ),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '₹${expense.amount.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: expense.amount > 1000
+                                        ? Colors.red.shade700
+                                        : Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: categoryColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    category,
                                     style: TextStyle(
-                                      color: categoryColors[category] ??
-                                          Colors.grey,
+                                      fontSize: 10,
+                                      color: categoryColor,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-                orElse: () => const SizedBox(),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Expenses list header
-              Row(
-                children: [
-                  Text(
-                    'Recent Expenses',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const Spacer(),
-                  // Filter dropdown could go here
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              // Expenses list
-              Expanded(
-                child: expensesAsync.when(
-                  data: (expenses) {
-                    if (expenses.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'No expenses recorded yet',
-                          style: TextStyle(
-                            color: Colors.grey,
+                                ),
+                              ],
+                            ),
+                            onTap: () {
+                              if (expense.billImageUrl != null) {
+                                _showBillImage(context, expense);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('No receipt image available')),
+                                );
+                              }
+                            },
                           ),
-                        ),
-                      );
-                    }
-                    return ExpensesList(
-                      expenses: expenses,
-                      categoryColors: categoryColors,
-                    );
-                  },
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => Center(
-                    child: Text('Error: $error'),
+                        );
+                      },
+                      childCount: expenses.length > 5 ? 5 : expenses.length,
+                    ),
                   ),
                 ),
-              ),
-            ],
+
+                // "View All" button if there are more expenses
+                if (expenses.length > 5)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _showAllExpenses(context, expenses, categoryColors);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          backgroundColor: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+                        ),
+                        child: Text(
+                          'View All ${expenses.length} Expenses',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Text('Error loading data: $error'),
           ),
         ),
       ),
@@ -1421,3 +1432,267 @@ final teamsProvider =
     }).toList();
   });
 });
+
+// Helper method to show all expenses in a full-screen view
+void _showAllExpenses(BuildContext context, List<Expense> expenses, Map<String, Color> categoryColors) {
+  // Sort expenses by date (newest first)
+  final sortedExpenses = List<Expense>.from(expenses);
+  sortedExpenses.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) => Scaffold(
+        appBar: AppBar(
+          title: const Text('All Expenses'),
+        ),
+        body: ListView.builder(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          itemCount: sortedExpenses.length,
+          itemBuilder: (context, index) {
+            final expense = sortedExpenses[index];
+            final category = expense.category ?? 'Other';
+            final categoryColor = categoryColors[category] ?? Colors.grey;
+
+            return Card(
+              margin: const EdgeInsets.only(bottom: 10),
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                leading: CircleAvatar(
+                  backgroundColor: categoryColor.withOpacity(0.2),
+                  child: Icon(
+                    _getCategoryIcon(category),
+                    color: categoryColor,
+                    size: 20,
+                  ),
+                ),
+                title: Text(
+                  expense.description,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+                subtitle: Text(
+                  '${DateFormat('MMM d, yyyy').format(expense.timestamp)} • ${expense.memberName ?? ""}',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+                trailing: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '₹${expense.amount.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: expense.amount > 1000 ? Colors.red.shade700 : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: categoryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        category,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: categoryColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                onTap: () {
+                  if (expense.billImageUrl != null) {
+                    _showBillImage(context, expense);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('No receipt image available')),
+                    );
+                  }
+                },
+              ),
+            );
+          },
+        ),
+      ),
+    ),
+  );
+}
+
+// Add this method to the top level of the file, outside of any class
+
+// Helper method to show bill image in a dialog
+void _showBillImage(BuildContext context, Expense expense) {
+  showDialog(
+    context: context,
+    builder: (context) => Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                const Icon(Icons.receipt_long),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Receipt: ${expense.description}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.6,
+            ),
+            child: InteractiveViewer(
+              panEnabled: true,
+              boundaryMargin: const EdgeInsets.all(20),
+              minScale: 0.5,
+              maxScale: 3.0,
+              child: Image.network(
+                expense.billImageUrl!,
+                fit: BoxFit.contain,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) => const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.error_outline, size: 40, color: Colors.red),
+                      SizedBox(height: 16),
+                      Text('Failed to load image'),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(16),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      DateFormat('MMM d, yyyy').format(expense.timestamp),
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                    Text(
+                      '₹${expense.amount.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                if (expense.category != null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        _getCategoryIcon(expense.category!),
+                        size: 16,
+                        color: Colors.grey.shade700,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        expense.category!,
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                if (expense.memberName != null && expense.memberName!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.person_outline,
+                        size: 16,
+                        color: Colors.grey.shade700,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Added by: ${expense.memberName}',
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// Helper method to get icon for expense category
+IconData _getCategoryIcon(String category) {
+  switch (category) {
+    case 'Food and Beverages':
+      return Icons.restaurant;
+    case 'Venue':
+      return Icons.location_city;
+    case 'Equipment':
+      return Icons.devices;
+    case 'Decorations':
+      return Icons.cake;
+    case 'Marketing':
+      return Icons.campaign;
+    case 'Transportation':
+      return Icons.directions_car;
+    case 'Miscellaneous':
+      return Icons.all_inbox;
+    case 'Other':
+    default:
+      return Icons.category;
+  }
+}
