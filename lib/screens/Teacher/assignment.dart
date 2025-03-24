@@ -49,13 +49,39 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   DateTime? currentDate;
   bool isLoading = false;
+  bool _showFilePreview = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set default branch if available
+    if (widget.teacher.branch != null && widget.teacher.branch!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(selectBranchForAssignment.notifier).update((state) => 
+          widget.teacher.branch![0]);
+      });
+    }
+  }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
-        context: context,
-        initialDate: currentDate ?? DateTime.now(),
-        firstDate: DateTime.now(),
-        lastDate: DateTime(2050));
+      context: context,
+      initialDate: currentDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2050),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: const Color.fromARGB(255, 37, 37, 37),
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
     if (pickedDate != null && pickedDate != currentDate) {
       setState(() {
         currentDate = pickedDate;
@@ -64,18 +90,31 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
   }
 
   Future selectFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+      );
 
-    if (result == null) return;
-    final path = result.files.single.path!;
+      if (result == null) return;
+      final path = result.files.single.path!;
 
-    setState(() => file = File(path));
+      setState(() {
+        file = File(path);
+        _showFilePreview = true;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error selecting file: ${e.toString()}')),
+      );
+    }
   }
 
   Future uploadFile() async {
     if (file == null) return;
 
-    final destination = 'files/${assignmentTitleController.text}';
+    final fileName = '${DateTime.now().millisecondsSinceEpoch}_${p.basename(file!.path)}';
+    final destination = 'assignments/${widget.teacher.uid}/$fileName';
 
     task = FirebaseApi.uploadFile(destination, file!);
 
@@ -83,408 +122,836 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
 
     if (task == null) return;
 
-    final snapshot = await task!.whenComplete(() {
-      showDialog(
-          context: context,
-          builder: (context) {
-            return Material(child: buildUploadStatus(task!));
-          });
-    });
-    final urlDownload = await snapshot.ref.getDownloadURL();
-    setState(() {
-      url = urlDownload;
-    });
+    try {
+      final snapshot = await task!.whenComplete(() {});
+      final urlDownload = await snapshot.ref.getDownloadURL();
+      setState(() {
+        url = urlDownload;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error uploading file: ${e.toString()}')),
+      );
+    }
   }
 
-  Widget buildUploadStatus(UploadTask task) => StreamBuilder<TaskSnapshot>(
-        stream: task.snapshotEvents,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final snap = snapshot.data!;
-            final progress = snap.bytesTransferred / snap.totalBytes;
-            final percentage = (progress * 100).toStringAsFixed(2);
+  Widget buildUploadStatus(UploadTask task) {
+    return StreamBuilder<TaskSnapshot>(
+      stream: task.snapshotEvents,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final snap = snapshot.data!;
+          final progress = snap.bytesTransferred / snap.totalBytes;
+          final percentage = (progress * 100).toStringAsFixed(2);
 
-            return Center(
-              child: Text(
-                '$percentage %',
-                style:
-                    const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                value: progress,
+                backgroundColor: Colors.grey.shade300,
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  Color.fromARGB(255, 37, 37, 37),
+                ),
+                strokeWidth: 6,
               ),
-            );
-          } else {
-            return Container();
-          }
-        },
-      );
-  Widget assignmentImage() {
-    return Center(
-      child: Stack(
-        children: <Widget>[
-          InkWell(
-            onTap: () async {
-              setState(() {
-                file = null;
-              });
-            },
-            child: Container(
-              width: double.infinity,
-              height: 200.0,
-              decoration: BoxDecoration(
-                  border:
-                      Border.all(color: const Color.fromARGB(255, 37, 37, 37))),
-              child: file != null &&
-                          file!.path.isNotEmpty &&
-                          p.extension(file!.path).contains('.jpeg') ||
-                      p.extension(file!.path).contains('.png') ||
-                      p.extension(file!.path).contains('.jpg')
-                  ? Image.file(
-                      File(file!.path),
-                      fit: BoxFit.cover,
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.file_copy_outlined),
-                        Text(p.basename(file!.path))
-                      ],
+              const SizedBox(height: 16),
+              Text(
+                '$percentage %',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Uploading file...',
+                style: TextStyle(
+                  color: Colors.grey.shade700,
+                ),
+              ),
+            ],
+          );
+        } else {
+          return const CircularProgressIndicator();
+        }
+      },
+    );
+  }
+
+  Widget _buildFilePreview() {
+    if (file == null) return const SizedBox.shrink();
+
+    final extension = p.extension(file!.path).toLowerCase();
+    final fileSize = (file!.lengthSync() / 1024).toStringAsFixed(2);
+    final fileName = p.basename(file!.path);
+    bool isImage = ['.jpg', '.jpeg', '.png'].contains(extension);
+    
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      child: _showFilePreview 
+        ? Container(
+          margin: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade300),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // File preview header
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Selected File',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
                     ),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 20),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () => setState(() {
+                        _showFilePreview = false;
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // File content preview
+              if (isImage)
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                  ),
+                  child: Image.file(
+                    File(file!.path),
+                    height: 200,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: _getColorForFileType(extension),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          _getIconForFileType(extension),
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              fileName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '$fileSize KB • ${extension.toUpperCase().substring(1)}',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              // Actions
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          file = null;
+                          _showFilePreview = false;
+                        });
+                      },
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        size: 18,
+                        color: Colors.red,
+                      ),
+                      label: const Text(
+                        'Remove',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      onPressed: () {
+                        selectFile();
+                      },
+                      icon: const Icon(
+                        Icons.file_upload_outlined,
+                        size: 18,
+                      ),
+                      label: const Text('Change'),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ) 
+        : const SizedBox.shrink(),
+    );
+  }
+
+  Color _getColorForFileType(String extension) {
+    switch (extension.toLowerCase()) {
+      case '.pdf':
+        return Colors.red.shade700;
+      case '.doc':
+      case '.docx':
+        return Colors.blue.shade700;
+      case '.jpg':
+      case '.jpeg':
+      case '.png':
+        return Colors.amber.shade700;
+      default:
+        return Colors.grey.shade700;
+    }
+  }
+
+  IconData _getIconForFileType(String extension) {
+    switch (extension.toLowerCase()) {
+      case '.pdf':
+        return Icons.picture_as_pdf;
+      case '.doc':
+      case '.docx':
+        return Icons.description;
+      case '.jpg':
+      case '.jpeg':
+      case '.png':
+        return Icons.image;
+      default:
+        return Icons.insert_drive_file;
+    }
+  }
+
+  Widget _buildBranchSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            'Select Branch',
+            style: TextStyle(
+              color: Colors.black87,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ],
-      ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: ref.watch(selectBranchForAssignment),
+              items: widget.teacher.branch!.map((String branch) {
+                return DropdownMenuItem(
+                  value: branch,
+                  child: Text(branch),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  ref.read(selectBranchForAssignment.notifier).update((state) => newValue);
+                }
+              },
+              icon: const Icon(Icons.arrow_drop_down_rounded),
+              isExpanded: true,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              borderRadius: BorderRadius.circular(12),
+              hint: const Text("Select branch"),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget branchSelection() {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 37, 37, 37),
-          borderRadius: BorderRadius.circular(12)),
-      child: DropdownButton(
-        underline: const SizedBox(),
+  void addAssignment() async {
+    final isValid = _formKey.currentState!.validate();
+    if (!isValid || currentDate == null) {
+      // Show error if date is not selected
+      if (currentDate == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a due date for the assignment')),
+        );
+      }
+      return;
+    }
+    
+    setState(() {
+      isLoading = true;
+    });
+    
+    try {
+      // Upload file if selected
+      if (file != null) {
+        await uploadFile();
+        if (url == null) {
+          throw Exception('Failed to upload file');
+        }
+      }
+      
+      _formKey.currentState!.save();
+      
+      // Create assignment ID
+      var uuid = const Uuid();
+      String assignmentId = uuid.v4();
+      
+      // Get selected branch
+      String currentBranch = ref.watch(selectBranchForAssignment);
+      if (currentBranch.isEmpty && widget.teacher.branch != null && widget.teacher.branch!.isNotEmpty) {
+        currentBranch = widget.teacher.branch![0];
+      }
+      
+      // Create assignment model
+      AssignMentModel assignment = AssignMentModel()
+        ..id = widget.teacher.uid
+        ..desc = assignDescController.text
+        ..title = assignmentTitleController.text
+        ..assignedBy = "${widget.teacher.firstName} ${widget.teacher.lastName ?? ''}"
+        ..url = url
+        ..subject = widget.subject
+        ..assignedDate = DateTime.now()
+        ..lastDate = currentDate
+        ..toBranch = currentBranch
+        ..year = widget.year
+        ..assignmentId = assignmentId;
 
-        padding: const EdgeInsets.only(
-          left: 10,
-          right: 10,
+      // Save to Firestore
+      await FirebaseFirestore.instance
+          .collection('assignments')
+          .doc(assignmentId)
+          .set(assignment.toMap());
+
+      if (!mounted) return;
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Successfully added assignment: ${assignmentTitleController.text}"),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        // Initial Value
-        value: ref.read(selectBranchForAssignment).isNotEmpty
-            ? ref.read(selectBranchForAssignment)
-            : widget.teacher.branch![0],
-        disabledHint: const Text("Select Branch"),
-        style: const TextStyle(color: Colors.white, fontSize: 15),
-
-        borderRadius: BorderRadius.circular(12),
-
-        isExpanded: true,
-        dropdownColor: const Color.fromARGB(255, 37, 37, 37),
-        // Down Arrow Icon
-
-        icon: const Icon(
-          Icons.keyboard_arrow_down,
-          color: Colors.white,
+      );
+      
+      // Navigate back
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const TeacherHome()),
+        (route) => false,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error creating assignment: ${error.toString()}"),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-
-        // Array list of items
-        items: widget.teacher.branch!.map((String branch) {
-          return DropdownMenuItem(
-            value: branch,
-            child: Text(branch),
-          );
-        }).toList(),
-        // After selecting the desired option,it will
-
-        onChanged: (String? newValue) {
-          setState(() {
-            ref
-                .watch(selectBranchForAssignment.notifier)
-                .update((state) => newValue!);
-          });
-        },
-        hint: const Text("select college"),
-      ),
-    );
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final dateSelectionButton = Material(
-      elevation: 3,
-      borderRadius: BorderRadius.circular(12),
-      color: const Color.fromARGB(255, 37, 37, 37),
-      child: MaterialButton(
-        minWidth: MediaQuery.of(context).size.width,
-        onPressed: () {
-          _selectDate(context);
-        },
-        child: Text(
-          currentDate != null
-              ? DateFormat('MMM d,yyyy').format(currentDate ?? DateTime.now())
-              : "Select Last Date",
-          style: const TextStyle(fontSize: 15.0, color: Colors.white),
-        ),
-      ),
-    );
-    final assignTitle = TextFormField(
-      controller: assignmentTitleController,
-      validator: (value) {
-        if (value != null && value.isEmpty) {
-          return "Assignment Name is Required";
-        } else {
-          return null;
-        }
-      },
-      onSaved: (value) {
-        assignmentTitleController.text = value!;
-      },
-      decoration: InputDecoration(
-        border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-          borderSide: BorderSide(),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(
-            width: 1.5,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade50,
+        appBar: AppBar(
+          elevation: 0,
+          centerTitle: true,
+          backgroundColor: const Color.fromARGB(255, 37, 37, 37),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
           ),
-          borderRadius: BorderRadius.circular(12.0),
-        ),
-        prefixIcon: const Icon(
-          Icons.event_available_outlined,
-          color: Color.fromARGB(255, 37, 37, 37),
-        ),
-        hintText: "Title",
-      ),
-    );
-    final assignmentDesc = TextFormField(
-      controller: assignDescController,
-      minLines: 1,
-      maxLines: 10,
-      validator: (value) {
-        if (value != null && value.isEmpty) {
-          return "Assignment Descreiption is Required";
-        } else {
-          return null;
-        }
-      },
-      onSaved: (value) {
-        assignDescController.text = value ?? "";
-      },
-      keyboardType: TextInputType.multiline,
-      decoration: InputDecoration(
-        border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-          borderSide: BorderSide(),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(
-            width: 1.5,
+          title: Column(
+            children: [
+              const Text(
+                "Create Assignment",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                widget.subject ?? "",
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white70,
+                ),
+              ),
+            ],
           ),
-          borderRadius: BorderRadius.circular(12.0),
-        ),
-        prefixIcon: const Icon(
-          Icons.description_outlined,
-          color: Color.fromARGB(255, 37, 37, 37),
-        ),
-        hintText: "Description",
-      ),
-    );
-    final selectFileButton = Material(
-      elevation: 3,
-      borderRadius: BorderRadius.circular(12),
-      color: const Color.fromARGB(255, 37, 37, 37),
-      child: MaterialButton(
-        minWidth: MediaQuery.of(context).size.width,
-        onPressed: () {
-          selectFile();
-        },
-        child: const Text(
-          "Select file",
-          style: TextStyle(fontSize: 15.0, color: Colors.white),
-        ),
-      ),
-    );
-
-    void addAssignment() async {
-      var uuid = const Uuid();
-      String assignmentId = uuid.v4();
-      String currentBranch = await ref.watch(selectBranchForAssignment);
-      String branchLogic() {
-        if (currentBranch.isNotEmpty) {
-          return currentBranch;
-        } else {
-          return widget.teacher.branch![0];
-        }
-      }
-
-      final isValid = _formKey.currentState!.validate();
-      if (isValid && currentDate != null) {
-        setState(() {
-          isLoading = true;
-        });
-        await uploadFile();
-        _formKey.currentState!.save();
-        try {
-          // final id = uuid.v4();
-          AssignMentModel assignment = AssignMentModel();
-          assignment.id = widget.teacher.uid;
-          assignment.desc = assignDescController.text;
-          assignment.title = assignmentTitleController.text;
-          assignment.assignedBy = widget.teacher.firstName;
-          assignment.url = url;
-          assignment.subject = widget.subject;
-          assignment.assignedDate = DateTime.now();
-          assignment.lastDate = currentDate;
-          assignment.toBranch = branchLogic();
-          assignment.year = widget.year;
-          assignment.assignmentId = assignmentId;
-
-          await FirebaseFirestore.instance
-              .collection('assignments')
-              .doc(assignmentId)
-              .set(assignment.toMap());
-
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(
-                  "Successfully Added ${assignmentTitleController.text}")));
-          Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const TeacherHome()),
-              (route) => false);
-        } catch (error) {
-          print('error occured ${error}');
-        } finally {
-          setState(() {
-            isLoading = false;
-          });
-        }
-      }
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        titleSpacing: 0,
-        toolbarHeight: 100,
-        backgroundColor: Colors.black12,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(24),
-            bottomRight: Radius.circular(24),
-          ),
-        ),
-        title: Column(
-          children: [
-            const Text("Assignment"),
-            Text(
-              widget.subject ?? "",
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(40),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  "Year: ${widget.year}",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
-          ],
+          ),
         ),
-      ),
-      bottomSheet: MaterialButton(
-        padding: const EdgeInsets.symmetric(
-          vertical: 15.0,
-        ),
-        minWidth: double.infinity,
-        shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-          topRight: Radius.circular(24),
-          topLeft: Radius.circular(24),
-        )),
-        color: const Color.fromARGB(255, 37, 37, 37),
-        textColor: Colors.white,
-        onPressed: () async {
-          addAssignment();
-        },
-        child: isLoading
-            ? const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  SizedBox(
-                    height: 10,
-                    width: 10,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
+        body: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
+              children: [
+                // Form header
+                Card(
+                  elevation: 0,
+                  color: Colors.blue.shade50,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.info_outline,
+                            color: Colors.blue.shade800,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            "Create an assignment for ${widget.subject} subject.\nStudents will be notified when you publish.",
+                            style: TextStyle(
+                              color: Colors.blue.shade800,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Text("Adding assingment.....")
-                ],
-              )
-            : const Text(
-                "Add Assignment",
-              ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-        child: NotificationListener<OverscrollIndicatorNotification>(
-          onNotification: ((overscroll) {
-            overscroll.disallowIndicator();
-            return true;
-          }),
-          child: Form(
-              key: _formKey,
-              child: ListView(
-                shrinkWrap: true,
-                physics: BouncingScrollPhysics(),
-                children: <Widget>[
-                  const SizedBox(
-                    height: 15,
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      assignTitle,
-                      const SizedBox(
-                        height: 20,
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Assignment title
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 4, bottom: 8),
+                      child: Text(
+                        'Assignment Title',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                      assignmentDesc,
-                      const SizedBox(
-                        height: 20,
+                    ),
+                    TextFormField(
+                      controller: assignmentTitleController,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Assignment title is required";
+                        } else if (value.length < 5) {
+                          return "Title should be at least 5 characters";
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: "Enter assignment title",
+                        hintStyle: TextStyle(color: Colors.grey.shade400),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 16,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color.fromARGB(255, 37, 37, 37),
+                            width: 2,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.red.shade400, width: 1),
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.title_rounded,
+                          color: Color.fromARGB(255, 37, 37, 37),
+                        ),
                       ),
-                      dateSelectionButton,
-                      const SizedBox(
-                        height: 20,
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Assignment description
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 4, bottom: 8),
+                      child: Text(
+                        'Description',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                      widget.teacher.branch!.length == 1
-                          ? Text(
-                              widget.teacher.branch!.map((e) => e).toString())
-                          : branchSelection(),
-                      const SizedBox(
-                        height: 20,
+                    ),
+                    TextFormField(
+                      controller: assignDescController,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Description is required";
+                        }
+                        return null;
+                      },
+                      minLines: 3,
+                      maxLines: 5,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: "Enter instructions for students",
+                        hintStyle: TextStyle(color: Colors.grey.shade400),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 16,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color.fromARGB(255, 37, 37, 37),
+                            width: 2,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.red.shade400, width: 1),
+                        ),
                       ),
-                      selectFileButton,
-                      const SizedBox(
-                        height: 20,
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Due date
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 4, bottom: 8),
+                      child: Text(
+                        'Due Date',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                      if (file != null && file!.path.isNotEmpty)
-                        Column(
+                    ),
+                    InkWell(
+                      onTap: () => _selectDate(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Row(
                           children: [
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  file = null;
-                                });
-                              },
-                              child: const Icon(Icons.cancel),
+                            Icon(
+                              Icons.calendar_today_rounded,
+                              color: currentDate != null 
+                                  ? const Color.fromARGB(255, 37, 37, 37)
+                                  : Colors.grey,
+                              size: 20,
                             ),
-                            assignmentImage(),
+                            const SizedBox(width: 12),
+                            Text(
+                              currentDate != null
+                                  ? DateFormat('EEEE, MMM d, yyyy').format(currentDate!)
+                                  : "Select a due date",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: currentDate != null 
+                                    ? Colors.black87 
+                                    : Colors.grey.shade600,
+                              ),
+                            ),
                           ],
                         ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Branch selection
+                if (widget.teacher.branch != null && widget.teacher.branch!.length > 1)
+                  _buildBranchSelection(),
+                
+                if (widget.teacher.branch != null && widget.teacher.branch!.length > 1)
+                  const SizedBox(height: 24),
+                
+                // File upload
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 4, bottom: 8),
+                      child: Text(
+                        'Attachment (Optional)',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: selectFile,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: const Color.fromARGB(255, 37, 37, 37).withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.file_upload_outlined,
+                                    color: Color.fromARGB(255, 37, 37, 37),
+                                    size: 28,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  file != null 
+                                      ? "Change attachment file" 
+                                      : "Upload PDF, Word or Image files",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  "Maximum size: 10 MB",
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                // File preview
+                _buildFilePreview(),
+              ],
+            ),
+          ),
+        ),
+        bottomSheet: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 10,
+                offset: Offset(0, -2),
+              ),
+            ],
+          ),
+          padding: EdgeInsets.fromLTRB(
+            20, 16, 20, 16 + MediaQuery.of(context).padding.bottom
+          ),
+          child: ElevatedButton(
+            onPressed: isLoading ? null : addAssignment,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 37, 37, 37),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              minimumSize: const Size(double.infinity, 54),
+              disabledBackgroundColor: Colors.grey.shade300,
+              disabledForegroundColor: Colors.grey.shade600,
+            ),
+            child: isLoading
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white.withOpacity(0.8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        "Creating Assignment...",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  )
+                : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.check_circle_outline),
+                      SizedBox(width: 12),
+                      Text(
+                        "Publish Assignment",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
                     ],
                   ),
-                ],
-              )),
+          ),
         ),
       ),
     );
@@ -498,6 +965,7 @@ class FirebaseApi {
 
       return ref.putFile(file);
     } on FirebaseException catch (e) {
+      print("FirebaseApi Error: ${e.message}");
       return null;
     }
   }
@@ -508,6 +976,7 @@ class FirebaseApi {
 
       return ref.putData(data);
     } on FirebaseException catch (e) {
+      print("FirebaseApi Error: ${e.message}");
       return null;
     }
   }

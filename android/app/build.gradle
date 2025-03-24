@@ -59,6 +59,13 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            
+            // Add this line to enable verbose output during builds to help troubleshoot
+            testProguardFiles 'proguard-rules.pro'
+
         }
     }
 }
@@ -69,4 +76,9 @@ flutter {
 
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'com.google.mlkit:text-recognition:16.0.0'
+    implementation 'com.google.mlkit:text-recognition-chinese:16.0.0'
+    implementation 'com.google.mlkit:text-recognition-devanagari:16.0.0'
+    implementation 'com.google.mlkit:text-recognition-japanese:16.0.0'
+    implementation 'com.google.mlkit:text-recognition-korean:16.0.0'
 }

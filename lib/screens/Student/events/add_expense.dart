@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:google_ml_vision/google_ml_vision.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:intl/intl.dart';
@@ -132,63 +132,70 @@ class _AddExpensePageState extends ConsumerState<AddExpensePage> {
   }
 
   Future<void> _pickImageAndExtractText() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  final picker = ImagePicker();
+  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null) {
-      setState(() {
-        _isLoading = true;
-      });
+  if (pickedFile != null) {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      // Create an InputImage object from the image file
+      final inputImage = InputImage.fromFilePath(pickedFile.path);
       
-      try {
-        final inputImage = GoogleVisionImage.fromFile(File(pickedFile.path));
-        final textRecognizer = GoogleVision.instance.textRecognizer();
-        final visionText = await textRecognizer.processImage(inputImage);
-  
-        // Extracted text
-        String extractedText = visionText.text ?? "";
+      // Initialize the text recognizer
+      final textRecognizer = TextRecognizer();
+      
+      // Process the image to extract text
+      final recognizedText = await textRecognizer.processImage(inputImage);
+
+      // Extracted text
+      String extractedText = recognizedText.text;
+      
+      // Try to extract amount from text (look for currency patterns)
+      RegExp amountRegex = RegExp(r'(Rs\.?|₹|INR)\s*(\d+[,\d]*\.?\d*)');
+      final amountMatch = amountRegex.firstMatch(extractedText);
+      
+      if (amountMatch != null && amountMatch.groupCount >= 2) {
+        String amountText = amountMatch.group(2)?.replaceAll(',', '') ?? '';
+        _amountController.text = amountText;
+      } else {
+        // Fallback: try to find any number that looks like a total
+        RegExp fallbackRegex = RegExp(r'total:?\s*(?:Rs\.?|₹|INR)?\s*(\d+[,\d]*\.?\d*)', caseSensitive: false);
+        final fallbackMatch = fallbackRegex.firstMatch(extractedText);
         
-        // Try to extract amount from text (look for currency patterns)
-        RegExp amountRegex = RegExp(r'(Rs\.?|₹|INR)\s*(\d+[,\d]*\.?\d*)');
-        final amountMatch = amountRegex.firstMatch(extractedText);
-        
-        if (amountMatch != null && amountMatch.groupCount >= 2) {
-          String amountText = amountMatch.group(2)?.replaceAll(',', '') ?? '';
+        if (fallbackMatch != null && fallbackMatch.groupCount >= 1) {
+          String amountText = fallbackMatch.group(1)?.replaceAll(',', '') ?? '';
           _amountController.text = amountText;
-        } else {
-          // Fallback: try to find any number that looks like a total
-          RegExp fallbackRegex = RegExp(r'total:?\s*(?:Rs\.?|₹|INR)?\s*(\d+[,\d]*\.?\d*)', caseSensitive: false);
-          final fallbackMatch = fallbackRegex.firstMatch(extractedText);
-          
-          if (fallbackMatch != null && fallbackMatch.groupCount >= 1) {
-            String amountText = fallbackMatch.group(1)?.replaceAll(',', '') ?? '';
-            _amountController.text = amountText;
-          }
         }
-        
-        // Try to extract a description or merchant name
-        List<String> lines = extractedText.split('\n');
-        for (String line in lines) {
-          if (line.length > 5 && !line.contains('Rs') && !line.contains('₹')) {
-            _descriptionController.text = line.trim();
-            break;
-          }
-        }
-  
-        textRecognizer.close();
-        setState(() {
-          _billImage = File(pickedFile.path);
-          _isLoading = false;
-        });
-      } catch (e) {
-        print('Error processing image: $e');
-        setState(() {
-          _billImage = File(pickedFile.path);
-          _isLoading = false;
-        });
       }
+      
+      // Try to extract a description or merchant name
+      List<String> lines = extractedText.split('\n');
+      for (String line in lines) {
+        if (line.length > 5 && !line.contains('Rs') && !line.contains('₹')) {
+          _descriptionController.text = line.trim();
+          break;
+        }
+      }
+
+      // Close the text recognizer when done
+      textRecognizer.close();
+      
+      setState(() {
+        _billImage = File(pickedFile.path);
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error processing image: $e');
+      setState(() {
+        _billImage = File(pickedFile.path);
+        _isLoading = false;
+      });
     }
   }
+}
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(

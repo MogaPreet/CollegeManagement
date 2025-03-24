@@ -286,49 +286,154 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   //Login Function
-  void signIn(String email, String password) async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-      await _auth
-          .signInWithEmailAndPassword(email: email, password: password)
-          .then((uid) => {
-                // checkforblock(),
-                Fluttertoast.showToast(msg: "Login Successfully"),
-                route()
-              })
-          .catchError((error) {
-        switch (error.code) {
-          case "invalid-email":
-            errorMessage = "Your email address appears to be malformed.";
-
-            break;
-          case "wrong-password":
-            errorMessage = "Your password is wrong.";
-            break;
-          case "user-not-found":
-            errorMessage = "User with this email doesn't exist.";
-            break;
-          case "user-disabled":
-            errorMessage = "User with this email has been disabled.";
-            break;
-          case "too-many-requests":
-            errorMessage = "Too many requests";
-            break;
-          case "operation-not-allowed":
-            errorMessage = "Signing in with Email and Password is not enabled.";
-            break;
-          default:
-            errorMessage = "An undefined Error happened.";
-        }
-
-        setState(() {
-          _isLoading = false;
-        });
-        Fluttertoast.showToast(msg: errorMessage!);
-        print(error.code);
-      });
-    }
+  Future<void> signIn(String email, String password) async {
+  if (!_formKey.currentState!.validate()) {
+    return;
   }
+  
+  try {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    // Attempt to sign in with Firebase Authentication
+    final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      email: email.trim(),
+      password: password,
+    );
+    
+    // Check if email is verified (optional feature)
+    // if (!userCredential.user!.emailVerified) {
+    //   setState(() {
+    //     _isLoading = false;
+    //   });
+    //   _showVerificationAlert();
+    //   return;
+    // }
+    
+    // Save login state to device
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool('isLoggedIn', true);
+    
+    // Register FCM token for push notifications (optional)
+    // await _updateFCMToken(userCredential.user!.uid);
+
+    // Show success message
+    _showSuccessMessage("Login successful");
+    
+    // Navigate to appropriate screen
+    await route();
+    
+  } on FirebaseAuthException catch (e) {
+    setState(() {
+      _isLoading = false;
+    });
+    
+    // Handle specific Firebase Auth errors
+    switch (e.code) {
+      case 'invalid-email':
+        _showErrorMessage('Please enter a valid email address');
+        break;
+      case 'user-not-found':
+        _showErrorMessage('No account found with this email');
+        break;
+      case 'wrong-password':
+        _showErrorMessage('Incorrect password');
+        break;
+      case 'user-disabled':
+        _showErrorMessage('This account has been disabled');
+        break;
+      case 'too-many-requests':
+        _showErrorMessage('Too many attempts. Please try again later');
+        break;
+      case 'network-request-failed':
+        _showErrorMessage('Network error. Please check your connection');
+        break;
+      default:
+        _showErrorMessage('Authentication failed. ${e.message}');
+    }
+    
+    // Log detailed error for debugging
+    print('Firebase Auth Error: ${e.code} - ${e.message}');
+    
+  } catch (e) {
+    // Handle any other unexpected errors
+    setState(() {
+      _isLoading = false;
+    });
+    
+    _showErrorMessage('An unexpected error occurred');
+    print('Unexpected Error: $e');
+  }
+}
+
+void _showErrorMessage(String message) {
+  Fluttertoast.showToast(
+    msg: message,
+    toastLength: Toast.LENGTH_LONG,
+    gravity: ToastGravity.BOTTOM,
+    backgroundColor: Colors.red.shade700,
+    textColor: Colors.white,
+    fontSize: 16.0,
+  );
+}
+
+void _showSuccessMessage(String message) {
+  Fluttertoast.showToast(
+    msg: message,
+    toastLength: Toast.LENGTH_SHORT,
+    gravity: ToastGravity.BOTTOM,
+    backgroundColor: Colors.green.shade700,
+    textColor: Colors.white,
+    fontSize: 16.0,
+  );
+}
+
+// Optional: Show email verification dialog
+void _showVerificationAlert() {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => AlertDialog(
+      title: const Text('Email Verification Required'),
+      content: const Text(
+        'Please verify your email address before signing in. Check your inbox for a verification link.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () async {
+            // Option to resend verification email
+            try {
+              await FirebaseAuth.instance.currentUser?.sendEmailVerification();
+              Navigator.of(context).pop();
+              _showSuccessMessage('Verification email sent');
+            } catch (e) {
+              _showErrorMessage('Failed to send verification email');
+            }
+          },
+          child: const Text('Resend Email'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
+}
+
+// Optional: Update FCM token for notifications
+// Future<void> _updateFCMToken(String userId) async {
+//   try {
+//     final fcmToken = await FirebaseMessaging.instance.getToken();
+//     if (fcmToken != null) {
+//       await FirebaseFirestore.instance
+//           .collection('users')
+//           .doc(userId)
+//           .update({'fcmToken': fcmToken});
+//     }
+//   } catch (e) {
+//     print('Failed to update FCM token: $e');
+//   }
+// }
 }

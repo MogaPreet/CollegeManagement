@@ -4,11 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/screens/Teacher/home.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:path_provider/path_provider.dart';
-import 'package:pdf_viewer_plugin/pdf_viewer_plugin.dart';
 
 class AssignmentResponse extends StatefulWidget {
   final String id;
@@ -160,30 +159,49 @@ class PDFscreen extends StatefulWidget {
 }
 
 class _PDFscreenState extends State<PDFscreen> {
-  String? pdfFlePath;
-  bool showPdf = false;
+  String? pdfFilePath;
+  bool isLoading = false;
+  int totalPages = 0;
+  int currentPage = 0;
+  bool pdfReady = false;
   TextEditingController remarkController = TextEditingController();
+  
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<File> downloadPDF() async {
+    setState(() {
+      isLoading = true;
+    });
+    
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/${widget.rollNo}.pdf');
+    
+    try {
+      final response = await http.get(Uri.parse(widget.path));
+      final file = File('${directory.path}/${widget.rollNo}.pdf');
+      await file.writeAsBytes(response.bodyBytes);
+      setState(() {
+        pdfFilePath = file.path;
+        isLoading = false;
+        pdfReady = true;
+      });
+      return file;
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to download PDF: $e')),
+      );
+      rethrow;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    Future<String> downloadAndSavePdf() async {
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/${widget.rollNo}.pdf');
-      // if (await file.exists()) {
-      //   return file.path;
-      // }
-      final response = await http.get(Uri.parse(widget.path));
-      await file.writeAsBytes(response.bodyBytes);
-      return file.path;
-    }
-
-    void loadPdf() async {
-      pdfFlePath = await downloadAndSavePdf();
-
-      setState(() {
-        showPdf = true;
-      });
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.rollNo),
@@ -191,137 +209,216 @@ class _PDFscreenState extends State<PDFscreen> {
             ? [const SizedBox.shrink()]
             : [
                 IconButton(
-                    onPressed: () async {
-                      //Add Remark Dialog
-                      await showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text(
-                                "Add Remark (optional)",
-                                style: TextStyle(
-                                  fontSize: 16,
+                  onPressed: () async {
+                    //Add Remark Dialog
+                    await showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text(
+                            "Add Remark (optional)",
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
+                          ),
+                          content: TextField(
+                            controller: remarkController,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Color.fromARGB(255, 37, 37, 37),
                                 ),
                               ),
-                              content: TextField(
-                                controller: remarkController,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: Color.fromARGB(255, 37, 37, 37),
-                                    ),
-                                  ),
-                                  hintText: "Remark",
-                                ),
+                              hintText: "Remark",
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                widget.colref
+                                    .doc(widget.rollNo)
+                                    .update({"status": "rejected"});
+                                if (remarkController.text.isNotEmpty) {
+                                  widget.colref.doc(widget.rollNo).update(
+                                      {"remark": remarkController.text});
+                                }
+                                Navigator.pushReplacement(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return AssignmentResponse(
+                                    id: widget.assignmentId,
+                                  );
+                                }));
+                              },
+                              style: ButtonStyle(
+                                minimumSize: MaterialStateProperty.all(
+                                    const Size(100, 50)),
+                                foregroundColor:
+                                    MaterialStateProperty.all(Colors.red),
                               ),
-                              actions: [
-                                TextButton(
-                                    onPressed: () {
-                                      widget.colref
-                                          .doc(widget.rollNo)
-                                          .update({"status": "rejected"});
-                                      if (remarkController.text.isNotEmpty) {
-                                        widget.colref.doc(widget.rollNo).update(
-                                            {"remark": remarkController.text});
-                                      }
-                                      Navigator.pushReplacement(context,
-                                          MaterialPageRoute(builder: (context) {
-                                        return AssignmentResponse(
-                                          id: widget.assignmentId,
-                                        );
-                                      }));
-                                    },
-                                    style: ButtonStyle(
-                                      minimumSize: MaterialStateProperty.all(
-                                          const Size(100, 50)),
-                                      foregroundColor:
-                                          MaterialStateProperty.all(Colors.red),
-                                    ),
-                                    child: const Text(
-                                      "Reject",
-                                    ))
-                              ],
-                            );
-                          });
-                    },
-                    icon: const Icon(Icons.thumb_down)),
+                              child: const Text(
+                                "Reject",
+                              )
+                            )
+                          ],
+                        );
+                      }
+                    );
+                  },
+                  icon: const Icon(Icons.thumb_down)
+                ),
                 IconButton(
-                    onPressed: () async {
-                      //Add Remark Dialog
-                      await showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text(
-                                "Add Remark (optional)",
-                                style: TextStyle(
-                                  fontSize: 16,
+                  onPressed: () async {
+                    //Add Remark Dialog
+                    await showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text(
+                            "Add Remark (optional)",
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
+                          ),
+                          content: TextField(
+                            controller: remarkController,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Color.fromARGB(255, 37, 37, 37),
                                 ),
                               ),
-                              content: TextField(
-                                controller: remarkController,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: Color.fromARGB(255, 37, 37, 37),
-                                    ),
-                                  ),
-                                  hintText: "Remark",
-                                ),
+                              hintText: "Remark",
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                widget.colref
+                                    .doc(widget.rollNo)
+                                    .update({"status": "accepted"});
+                                if (remarkController.text.isNotEmpty) {
+                                  widget.colref.doc(widget.rollNo).update(
+                                      {"remark": remarkController.text});
+                                }
+                                Navigator.pushReplacement(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return AssignmentResponse(
+                                    id: widget.assignmentId,
+                                  );
+                                }));
+                              },
+                              style: ButtonStyle(
+                                minimumSize: MaterialStateProperty.all(
+                                    const Size(100, 50)),
+                                foregroundColor:
+                                    MaterialStateProperty.all(
+                                        Colors.green),
                               ),
-                              actions: [
-                                TextButton(
-                                    onPressed: () {
-                                      widget.colref
-                                          .doc(widget.rollNo)
-                                          .update({"status": "accepted"});
-                                      if (remarkController.text.isNotEmpty) {
-                                        widget.colref.doc(widget.rollNo).update(
-                                            {"remark": remarkController.text});
-                                      }
-                                      Navigator.pushReplacement(context,
-                                          MaterialPageRoute(builder: (context) {
-                                        return AssignmentResponse(
-                                          id: widget.assignmentId,
-                                        );
-                                      }));
-                                    },
-                                    style: ButtonStyle(
-                                      minimumSize: MaterialStateProperty.all(
-                                          const Size(100, 50)),
-                                      foregroundColor:
-                                          MaterialStateProperty.all(
-                                              Colors.green),
-                                    ),
-                                    child: const Text(
-                                      "Accept",
-                                    ))
-                              ],
-                            );
-                          });
-                    },
-                    icon: const Icon(Icons.check_box))
+                              child: const Text(
+                                "Accept",
+                              )
+                            )
+                          ],
+                        );
+                      }
+                    );
+                  },
+                  icon: const Icon(Icons.check_box)
+                )
               ],
       ),
-      body: Center(
-        child: Column(
-          children: <Widget>[
-            if (showPdf == false)
-              ElevatedButton(
-                style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(Colors.black)),
-                onPressed: loadPdf,
-                child: const Text("See the work"),
+      body: Column(
+        children: <Widget>[
+          if (!pdfReady)
+            Expanded(
+              child: Center(
+                child: isLoading
+                    ? const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text('Downloading PDF...'),
+                        ],
+                      )
+                    : ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Colors.black),
+                        ),
+                        onPressed: downloadPDF,
+                        child: const Text("Download and View PDF"),
+                      ),
               ),
-            if (pdfFlePath != null)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: PdfView(path: pdfFlePath ?? "Something went wrong"),
-                ),
-              )
-          ],
-        ),
+            ),
+          if (pdfReady && pdfFilePath != null)
+            Expanded(
+              child: Stack(
+                children: [
+                  PDFView(
+                    filePath: pdfFilePath!,
+                    enableSwipe: true,
+                    swipeHorizontal: true,
+                    autoSpacing: true,
+                    pageFling: true,
+                    pageSnap: true,
+                    defaultPage: currentPage,
+                    fitPolicy: FitPolicy.BOTH,
+                    preventLinkNavigation: false,
+                    onRender: (_pages) {
+                      setState(() {
+                        totalPages = _pages!;
+                        pdfReady = true;
+                      });
+                    },
+                    onError: (error) {
+                      setState(() {
+                        pdfReady = false;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error: $error')),
+                      );
+                    },
+                    onPageError: (page, error) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error on page $page: $error')),
+                      );
+                    },
+                    onViewCreated: (PDFViewController pdfViewController) {
+                      // Save the controller for later use
+                    },
+                    onPageChanged: (int? page, int? total) {
+                      setState(() {
+                        currentPage = page!;
+                      });
+                    },
+                  ),
+                  // Page indicator at the bottom of the PDF
+                  pdfReady ? Positioned(
+                    bottom: 20,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: Colors.black54,
+                        ),
+                        child: Text(
+                          'Page ${currentPage + 1} of $totalPages',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ) : Container(),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

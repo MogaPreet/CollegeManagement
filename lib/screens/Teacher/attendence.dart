@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:excel/excel.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 //use riverpod for state management for this code
 class AttendancePage extends ConsumerStatefulWidget {
@@ -41,69 +42,205 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
   String selectedBranch = "";
   Future<void> generateExcelFile(
       List<DocumentSnapshot> students, List<bool> switchValues) async {
-    final excel = Excel.createExcel();
+    try {
+      // Create a new Excel document
+      final excel = Excel.createExcel();
+      final sheet = excel['Students'];
 
-    final sheet = excel['Students'];
+      // Define header styles
+      final headerStyle = CellStyle(
+        bold: true,
+    
+        horizontalAlign: HorizontalAlign.Center,
+      );
 
-    // Headers
-    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0)).value =
-        'Roll No';
-    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0)).value =
-        'First Name';
-    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 0)).value =
-        'Last Name';
-    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: 0)).value =
-        'Present/Absent';
+      // Add headers with styling
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0))
+        ..value = TextCellValue('Roll No')
+        ..cellStyle = headerStyle;
 
-    // Student data
-    for (int i = 0; i < students.length; i++) {
-      final DocumentSnapshot student = students[i];
-      sheet
-          .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: i + 1))
-          .value = student['rollNo'].toString();
-      sheet
-          .cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: i + 1))
-          .value = student['firstName'];
-      sheet
-          .cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: i + 1))
-          .value = student['lastName'];
-      sheet
-          .cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: i + 1))
-          .value = switchValues[i] ? 'Present' : 'Absent';
-    }
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0))
+        ..value = TextCellValue('First Name')
+        ..cellStyle = headerStyle;
 
-    // Save Excel file
-    final documentsDirectory = await getApplicationDocumentsDirectory();
-    print(documentsDirectory.path);
-    final formattedDate =
-        '${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}${widget.currentYear}_${selectedBranch}';
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 0))
+        ..value = TextCellValue('Last Name')
+        ..cellStyle = headerStyle;
 
-    final excelFileName = formattedDate + '.xlsx';
-    final excelFile = File('/storage/emulated/0/Download/$excelFileName');
-    List<int>? fileBytes = excel.save();
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: 0))
+        ..value = TextCellValue('Present/Absent')
+        ..cellStyle = headerStyle;
 
-    if (fileBytes != null) {
-      print("workingg");
-      excelFile
-        ..createSync()
-        ..writeAsBytesSync(fileBytes);
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Success'),
-            content: Text('File saved to ${excelFile.path}'),
+      // Define cell styles for present/absent
+      final presentStyle = CellStyle(
+      
+        horizontalAlign: HorizontalAlign.Center,
+      );
+
+      final absentStyle = CellStyle(
+     
+        horizontalAlign: HorizontalAlign.Center,
+      );
+
+      // Add student data
+      for (int i = 0; i < students.length && i < switchValues.length; i++) {
+        final DocumentSnapshot student = students[i];
+        final data = student.data() as Map<String, dynamic>?;
+
+        if (data == null) continue;
+
+        // Add roll number
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: i + 1))
+          ..value = TextCellValue(data['rollNo']?.toString() ?? 'N/A');
+
+        // Add first name
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: i + 1))
+          ..value = TextCellValue(data['firstName']?.toString() ?? 'N/A');
+
+        // Add last name
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: i + 1))
+          ..value = TextCellValue(data['lastName']?.toString() ?? '');
+
+        // Add attendance status with appropriate styling
+        final isPresent = i < switchValues.length && switchValues[i];
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: i + 1))
+          ..value = TextCellValue(isPresent ? 'Present' : 'Absent')
+          ..cellStyle = isPresent ? presentStyle : absentStyle;
+      }
+
+      // Add a summary row
+      final totalRow = students.length + 2;
+      final presentCount = switchValues.where((value) => value).length;
+
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: totalRow))
+        ..value = TextCellValue('Summary')
+        ..cellStyle = CellStyle(bold: true);
+
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: totalRow))
+        ..value = TextCellValue('Total: ${students.length}');
+
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: totalRow))
+        ..value = TextCellValue('Present: $presentCount');
+
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: totalRow))
+        ..value = TextCellValue('Absent: ${students.length - presentCount}');
+
+      // Set column widths for better readability
+      sheet.setColumnWidth(0, 15);
+      sheet.setColumnWidth(1, 20);
+      sheet.setColumnWidth(2, 20);
+      sheet.setColumnWidth(3, 20);
+
+      // Create file name with proper formatting
+      final now = DateTime.now();
+      final formattedDate = '${now.day}-${now.month}-${now.year}';
+      final branch = selectedBranch.isNotEmpty ? selectedBranch : widget.myBranch.first;
+      final excelFileName = 'Attendance_${widget.subject}_${widget.currentYear}_${branch}_${formattedDate}.xlsx';
+
+      // Check if permission is granted
+      var status = await Permission.storage.status;
+      if (!status.isGranted) {
+        await Permission.storage.request();
+        status = await Permission.storage.status;
+        if (!status.isGranted) {
+          throw Exception("Storage permission not granted");
+        }
+      }
+
+      try {
+        // Try to save to Downloads folder
+        final excelFile = File('/storage/emulated/0/Download/$excelFileName');
+        final bytes = excel.encode();
+
+        if (bytes != null) {
+          await excelFile.writeAsBytes(bytes);
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('File saved to Downloads/$excelFileName'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 5),
+                action: SnackBarAction(
+                  label: 'OK',
+                  textColor: Colors.white,
+                  onPressed: () {},
+                ),
+              ),
+            );
+          }
+          return;
+        } else {
+          throw Exception("Failed to encode Excel file");
+        }
+      } catch (e) {
+        print("Error saving to Downloads: $e");
+
+        // Fallback: save to app documents directory
+        try {
+          final directory = await getApplicationDocumentsDirectory();
+          final excelFile = File('${directory.path}/$excelFileName');
+          final bytes = excel.encode();
+
+          if (bytes != null) {
+            await excelFile.writeAsBytes(bytes);
+
+            if (mounted) {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Excel File Created'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('File saved to:'),
+                      SizedBox(height: 8),
+                      Text(
+                        excelFile.path,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Note: The file is saved in the app\'s private directory since access to Downloads folder was denied.',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          } else {
+            throw Exception("Failed to encode Excel file");
+          }
+        } catch (innerError) {
+          print("Error in fallback save: $innerError");
+          throw innerError;
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to create Excel file: ${e.toString()}'),
             actions: [
               TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                onPressed: () => Navigator.pop(context),
                 child: const Text('OK'),
-              )
+              ),
             ],
-          );
-        },
-      );
+          ),
+        );
+      }
+      print("Excel generation error: $e");
     }
   }
 

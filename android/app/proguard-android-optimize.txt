@@ -1,0 +1,52 @@
+# Keep all classes from the missing_rules.txt file
+# Common Flutter rules
+-keep class io.flutter.app.** { *; }
+-keep class io.flutter.plugin.** { *; }
+-keep class io.flutter.util.** { *; }
+-keep class io.flutter.view.** { *; }
+-keep class io.flutter.** { *; }
+-keep class io.flutter.plugins.** { *; }
+
+# Firebase
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
+
+# Network libraries
+-keep class com.squareup.okhttp.** { *; }
+-keep class okhttp3.** { *; }
+-keep class okio.** { *; }
+
+# Other commonly missing classes
+-keep class androidx.lifecycle.** { *; }
+-keep class androidx.core.** { *; }
+-keep class org.xmlpull.** { *; }
+
+# Keep serialized model classes
+-keepclassmembers class ** implements java.io.Serializable {
+    static final long serialVersionUID;
+    private static final java.io.ObjectStreamField[] serialPersistentFields;
+    !static !transient <fields>;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object writeReplace();
+    java.lang.Object readResolve();
+}
+
+# Keep generic types for JSON serialization
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# Add missing rules from the generated file - you need to check the actual missing_rules.txt file
+# and add specific rules as needed
+
+# Common missing rule for GSON serialization
+-keepclassmembers,allowobfuscation class * {
+  @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# For using reflection
+-keepattributes Signature
+-keepattributes *Annotation*
+-keepattributes EnclosingMethod
+-keepattributes InnerClasses
