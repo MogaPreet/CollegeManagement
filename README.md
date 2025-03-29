@@ -14,8 +14,16 @@ The College Management System is a multi-module Flutter application that provide
 - **Assignment Management** - Access, submit, and track assignments
 - **Event Calendar** - Stay updated with college events and schedules
 - **Notice Board** - Receive important announcements and notices
-- **Expense Tracker** - Manage and track educational expenses
-- **AI Features** - Text-to-speech for accessibility
+- **Expense Tracker**
+- Record and categorize educational expenses
+- Generate monthly spending reports
+- Set budget limits with alerts
+- Export financial data for reimbursements
+- **AI Features**
+- Text-to-speech for document reading and accessibility
+- Speech-to-text for hands-free note taking
+- Gemini AI integration for academic assistance and research
+- Smart notifications with context-aware reminders
 
 ### For Teachers
 - **Attendance Management** - Mark and manage student attendance
@@ -81,41 +89,80 @@ lib/
 ├── models/
 │   ├── user_model.dart
 │   ├── assignment_model.dart
+│   ├── expense_model.dart
+│   ├── event_model.dart
 │   └── ...
 ├── screens/
 │   ├── auth/
+│   │   ├── login_screen.dart
+│   │   ├── signup_screen.dart
+│   │   └── ...
 │   ├── student/
+│   │   ├── dashboard_screen.dart
+│   │   ├── attendance_screen.dart
+│   │   ├── expense_tracker/
+│   │   ├── ai_features/
+│   │   └── ...
 │   ├── teacher/
+│   │   ├── teacher_dashboard.dart
+│   │   ├── class_management.dart
+│   │   └── ...
+│   ├── common/
 │   └── ...
 ├── services/
 │   ├── firebase_service.dart
 │   ├── auth_service.dart
+│   ├── expense_service.dart
+│   ├── ai_service.dart
+│   ├── tts_service.dart
+│   ├── stt_service.dart
 │   └── ...
 ├── utils/
 │   ├── constants.dart
 │   ├── theme.dart
+│   ├── helpers.dart
 │   └── ...
 └── widgets/
     ├── custom_button.dart
     ├── custom_text_field.dart
+    ├── expense_card.dart
+    ├── ai_chat_widget.dart
     └── ...
 ```
 
 ## 📚 Dependencies
 
-- **firebase_core**: Firebase core functionality
-- **firebase_auth**: Authentication services
-- **cloud_firestore**: NoSQL database by Firebase
-- **firebase_storage**: File storage solution
-- **provider**: State management
-- **http**: Network requests
-- **intl**: Internationalization and formatting
-- **shared_preferences**: Local storage
-- **path_provider**: File system locations
-- **file_picker**: Select files from device
-- **flutter_tts**: Text-to-speech functionality
-- **flutter_pdfview**: PDF document viewing
-- **charts_flutter**: Data visualization
+- **Firebase Packages**
+- **firebase_core**: ^2.4.1 - Firebase core functionality
+- **firebase_auth**: ^4.2.5 - Authentication services
+- **cloud_firestore**: ^4.3.1 - NoSQL database by Firebase
+- **firebase_storage**: ^11.0.10 - File storage solution
+
+- **State Management**
+- **provider**: ^6.0.5 - State management solution
+- **shared_preferences**: ^2.0.17 - Local storage for app preferences
+
+- **UI & Functionality**
+- **google_fonts**: ^4.0.3 - Custom typography
+- **flutter_spinkit**: ^5.1.0 - Loading animations
+- **intl**: ^0.17.0 - Internationalization and formatting
+- **http**: ^0.13.5 - Network requests
+- **path_provider**: ^2.0.12 - File system locations
+- **file_picker**: ^5.2.5 - Select files from device
+- **url_launcher**: ^6.1.8 - Launch URLs externally
+
+- **AI & Media Features**
+- **flutter_tts**: ^3.6.3 - Text-to-speech functionality
+- **speech_to_text**: ^6.1.1 - Voice recognition and dictation
+- **google_generative_ai**: ^0.1.0 - Gemini AI integration
+- **flutter_pdfview**: ^1.2.5 - PDF document viewing
+- **camera**: ^0.10.3 - Camera access for document scanning
+
+- **Data & Analytics**
+- **fl_chart**: ^0.62.0 - Interactive charts for expense tracking
+- **sqflite**: ^2.2.4+1 - Local SQLite database
+- **excel**: ^2.1.0 - Export data to spreadsheets
+- **pdf**: ^3.9.0 - Generate PDF reports
 
 ## 📱 Screenshots
 
@@ -126,7 +173,9 @@ lib/
 - Implementing video conferencing for virtual classes
 - Adding a chat system for student-teacher communication
 - Integration with third-party academic tools
-- Extending AI capabilities for personalized learning
+- Extending AI capabilities for personalized learning experiences
+- Implementing offline mode with data synchronization
+- Adding gamification elements to increase student engagement
 - Mobile payment integration for fee payments
 
 ## 👥 Contributors
