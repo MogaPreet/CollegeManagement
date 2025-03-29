@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cms/models/assignment.dart';
 import 'package:cms/models/user.dart';
@@ -50,6 +52,7 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
   DateTime? currentDate;
   bool isLoading = false;
   bool _showFilePreview = false;
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -111,28 +114,194 @@ class _AssignmentTeacherPageState extends ConsumerState<AssignmentTeacherPage> {
   }
 
   Future uploadFile() async {
-    if (file == null) return;
+    if (file == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a file first'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.amber,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isUploading = true;
+    });
 
     final fileName = '${DateTime.now().millisecondsSinceEpoch}_${p.basename(file!.path)}';
     final destination = 'assignments/${widget.teacher.uid}/$fileName';
 
-    task = FirebaseApi.uploadFile(destination, file!);
-
-    setState(() {});
-
-    if (task == null) return;
-
     try {
+      task = FirebaseApi.uploadFile(destination, file!);
+      setState(() {});
+
+      if (task == null) {
+        setState(() {
+          _isUploading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to start upload task'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Show upload progress UI
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => _buildUploadProgressDialog(),
+      );
+
       final snapshot = await task!.whenComplete(() {});
       final urlDownload = await snapshot.ref.getDownloadURL();
+      
       setState(() {
         url = urlDownload;
+        _isUploading = false;
       });
-    } catch (e) {
+      
+      // Close the progress dialog
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error uploading file: ${e.toString()}')),
+        const SnackBar(
+          content: Text('File uploaded successfully'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _isUploading = false;
+      });
+      
+      // Close the progress dialog if it's open
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error uploading file: ${e.toString()}'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
       );
     }
+  }
+
+  Widget _buildUploadProgressDialog() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return StreamBuilder<TaskSnapshot>(
+      stream: task?.snapshotEvents,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final snap = snapshot.data!;
+          final progress = snap.bytesTransferred / snap.totalBytes;
+          final percentage = (progress * 100).toStringAsFixed(1);
+          
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            backgroundColor: isDarkMode ? Colors.grey.shade800 : Colors.white,
+            title: Text(
+              'Uploading Assignment',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black87,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 8),
+                Text(
+                  'Uploading file...',
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.grey.shade300 : Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    isDarkMode ? Colors.deepPurple.shade300 : Colors.deepPurple,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '$percentage%',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (snap.state == TaskState.running)
+                  Text(
+                    _getFileSize(snap.bytesTransferred, 1) +
+                        ' / ' +
+                        _getFileSize(snap.totalBytes, 1),
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+                      fontSize: 13,
+                    ),
+                  ),
+              ],
+            ),
+          );
+        } else {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            backgroundColor: isDarkMode ? Colors.grey.shade800 : Colors.white,
+            title: Text(
+              'Preparing Upload',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black87,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 16),
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(
+                  'Preparing your file...',
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.grey.shade300 : Colors.grey.shade700,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  // Helper function to get file size in a readable format
+  String _getFileSize(int bytes, int decimals) {
+    if (bytes <= 0) return "0 B";
+    const suffixes = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    var i = (log(bytes) / log(1024)).floor();
+    return ((bytes / pow(1024, i)).toStringAsFixed(decimals)) + ' ' + suffixes[i];
   }
 
   Widget buildUploadStatus(UploadTask task) {
